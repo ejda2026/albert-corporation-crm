@@ -447,12 +447,50 @@ form input:focus {
   border-top: 1px solid var(--color-borde);
 }
 
+.acciones-modal.acciones-detalle {
+  justify-content: space-between;
+}
+
+.acciones-modal.acciones-detalle .boton-secundario,
+.acciones-modal.acciones-detalle .boton-principal {
+  margin-left: auto;
+}
+
+.acciones-modal.acciones-detalle .boton-secundario + .boton-principal,
+.acciones-modal.acciones-detalle #btn-editar-cliente + #btn-cerrar,
+.acciones-modal.acciones-detalle #btn-editar-cliente ~ .boton-principal {
+  margin-left: 0;
+}
+
 .acciones-modal .boton-principal,
-.acciones-modal .boton-secundario {
+.acciones-modal .boton-secundario,
+.acciones-modal .boton-peligro {
   width: auto;
   margin: 0;
   padding: 8px 16px;
   font-size: 13px;
+}
+
+.boton-peligro {
+  padding: 7px 14px;
+  background: var(--color-superficie);
+  color: var(--color-error);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.boton-peligro:hover {
+  background: var(--color-error-suave);
+  border-color: var(--color-error);
+}
+
+.boton-peligro:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .detalle-cliente {

@@ -3,6 +3,8 @@ import {
   addDoc,
   doc,
   getDoc,
+  updateDoc,
+  deleteDoc,
   onSnapshot,
   orderBy,
   query,
@@ -13,24 +15,26 @@ import { auth, db } from "./config.js";
 
 const listaClientes = document.getElementById("lista-clientes");
 const btnNuevoCliente = document.getElementById("btn-nuevo-cliente");
-const modalNuevo = document.getElementById("modal-nuevo-cliente");
+const modalForm = document.getElementById("modal-form-cliente");
 const modalDetalle = document.getElementById("modal-detalle-cliente");
-const formNuevo = document.getElementById("form-nuevo-cliente");
+const formCliente = document.getElementById("form-cliente");
+const tituloModalForm = document.getElementById("titulo-modal-form");
 const btnGuardar = document.getElementById("btn-guardar-cliente");
-const errorNuevo = document.getElementById("error-nuevo-cliente");
+const errorForm = document.getElementById("error-form-cliente");
 const contenidoDetalle = document.getElementById("contenido-detalle-cliente");
 const tituloDetalle = document.getElementById("titulo-modal-detalle");
+const btnEditar = document.getElementById("btn-editar-cliente");
+const btnEliminar = document.getElementById("btn-eliminar-cliente");
 
 let unsubscribeClientes = null;
+let clienteEnDetalleId = null;
 
 onAuthStateChanged(auth, (usuario) => {
   if (usuario) {
     suscribirClientes();
-  } else {
-    if (unsubscribeClientes) {
-      unsubscribeClientes();
-      unsubscribeClientes = null;
-    }
+  } else if (unsubscribeClientes) {
+    unsubscribeClientes();
+    unsubscribeClientes = null;
   }
 });
 
@@ -84,18 +88,43 @@ function crearTarjetaCliente(cliente) {
   return tarjeta;
 }
 
-btnNuevoCliente.addEventListener("click", () => abrirModal(modalNuevo));
+btnNuevoCliente.addEventListener("click", () => abrirFormulario("nuevo"));
+
+btnEditar.addEventListener("click", () => {
+  if (!clienteEnDetalleId) return;
+  cerrarModal(modalDetalle);
+  abrirFormulario("editar", clienteEnDetalleId);
+});
+
+btnEliminar.addEventListener("click", async () => {
+  if (!clienteEnDetalleId) return;
+  const nombre = tituloDetalle.textContent || "este cliente";
+  const ok = window.confirm(
+    `¿Eliminar a "${nombre}"? Esta accion no se puede deshacer.`
+  );
+  if (!ok) return;
+  try {
+    btnEliminar.disabled = true;
+    await deleteDoc(doc(db, "clientes", clienteEnDetalleId));
+    cerrarModal(modalDetalle);
+  } catch (error) {
+    console.error("Error al eliminar cliente:", error);
+    window.alert("No se pudo eliminar. Intenta de nuevo.");
+  } finally {
+    btnEliminar.disabled = false;
+  }
+});
 
 for (const el of document.querySelectorAll("[data-cerrar]")) {
   el.addEventListener("click", () => {
-    cerrarModal(modalNuevo);
+    cerrarModal(modalForm);
     cerrarModal(modalDetalle);
   });
 }
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
-    cerrarModal(modalNuevo);
+    cerrarModal(modalForm);
     cerrarModal(modalDetalle);
   }
 });
@@ -108,42 +137,100 @@ function cerrarModal(modal) {
   modal.classList.add("oculto");
 }
 
-formNuevo.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  errorNuevo.textContent = "";
+async function abrirFormulario(modo, id = null) {
+  formCliente.dataset.modo = modo;
+  formCliente.dataset.id = id || "";
+  errorForm.textContent = "";
+
+  if (modo === "nuevo") {
+    tituloModalForm.textContent = "Nuevo cliente";
+    btnGuardar.textContent = "Guardar cliente";
+    formCliente.reset();
+    document.querySelector(
+      'input[name="tipo"][value="residencial"]'
+    ).checked = true;
+    abrirModal(modalForm);
+    return;
+  }
+
+  tituloModalForm.textContent = "Editar cliente";
+  btnGuardar.textContent = "Guardar cambios";
   btnGuardar.disabled = true;
+  abrirModal(modalForm);
+  try {
+    const snap = await getDoc(doc(db, "clientes", id));
+    if (!snap.exists()) {
+      errorForm.textContent = "El cliente ya no existe.";
+      btnGuardar.disabled = false;
+      return;
+    }
+    prellenarFormulario(snap.data());
+    btnGuardar.disabled = false;
+  } catch (error) {
+    console.error("Error al cargar cliente para editar:", error);
+    errorForm.textContent = "No se pudo cargar el cliente.";
+    btnGuardar.disabled = false;
+  }
+}
+
+function prellenarFormulario(cliente) {
+  const tipoInput = document.querySelector(
+    `input[name="tipo"][value="${cliente.tipo || "residencial"}"]`
+  );
+  if (tipoInput) tipoInput.checked = true;
+  document.getElementById("nuevo-nombre").value = cliente.nombre || "";
+  document.getElementById("nuevo-telefono").value = cliente.telefono || "";
+  document.getElementById("nuevo-ciudad").value = cliente.ciudad || "Navojoa";
+  document.getElementById("nuevo-notas").value = cliente.notas || "";
+}
+
+formCliente.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  errorForm.textContent = "";
+  btnGuardar.disabled = true;
+  const textoOriginal = btnGuardar.textContent;
   btnGuardar.textContent = "Guardando...";
 
   const datos = leerFormulario();
   if (!datos.nombre || !datos.telefono) {
-    errorNuevo.textContent = "Faltan datos obligatorios.";
+    errorForm.textContent = "Faltan datos obligatorios.";
     btnGuardar.disabled = false;
-    btnGuardar.textContent = "Guardar cliente";
+    btnGuardar.textContent = textoOriginal;
     return;
   }
 
+  const modo = formCliente.dataset.modo;
+  const id = formCliente.dataset.id;
+
   try {
-    await addDoc(collection(db, "clientes"), {
-      ...datos,
-      activo: true,
-      fechaCreacion: serverTimestamp(),
-      fechaActualizacion: serverTimestamp()
-    });
-    formNuevo.reset();
-    document.querySelector('input[name="tipo"][value="residencial"]').checked = true;
-    cerrarModal(modalNuevo);
+    if (modo === "editar" && id) {
+      await updateDoc(doc(db, "clientes", id), {
+        ...datos,
+        fechaActualizacion: serverTimestamp()
+      });
+    } else {
+      await addDoc(collection(db, "clientes"), {
+        ...datos,
+        activo: true,
+        fechaCreacion: serverTimestamp(),
+        fechaActualizacion: serverTimestamp()
+      });
+    }
+    cerrarModal(modalForm);
+    formCliente.reset();
   } catch (error) {
     console.error("Error al guardar cliente:", error);
-    errorNuevo.textContent = "No se pudo guardar. Intenta de nuevo.";
+    errorForm.textContent = "No se pudo guardar. Intenta de nuevo.";
   } finally {
     btnGuardar.disabled = false;
-    btnGuardar.textContent = "Guardar cliente";
+    btnGuardar.textContent = textoOriginal;
   }
 });
 
 function leerFormulario() {
   const tipo =
-    document.querySelector('input[name="tipo"]:checked')?.value || "residencial";
+    document.querySelector('input[name="tipo"]:checked')?.value ||
+    "residencial";
   return {
     tipo,
     nombre: document.getElementById("nuevo-nombre").value.trim(),
@@ -154,6 +241,7 @@ function leerFormulario() {
 }
 
 async function abrirDetalle(id) {
+  clienteEnDetalleId = id;
   contenidoDetalle.innerHTML =
     '<p class="mensaje-vacio">Cargando...</p>';
   tituloDetalle.textContent = "Detalle del cliente";
@@ -184,7 +272,7 @@ function pintarDetalle(cliente) {
   ];
   contenidoDetalle.innerHTML = filas
     .map(
-      ([etiqueta, valor]) => `
+      ([etiqueta, _]) => `
         <div class="fila">
           <span class="etiqueta">${etiqueta}</span>
           <span class="valor"></span>
