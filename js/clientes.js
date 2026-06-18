@@ -28,6 +28,7 @@ const btnEliminar = document.getElementById("btn-eliminar-cliente");
 
 let unsubscribeClientes = null;
 let clienteEnDetalleId = null;
+let clientesEnMemoria = new Map();
 
 onAuthStateChanged(auth, (usuario) => {
   if (usuario) {
@@ -43,7 +44,14 @@ function suscribirClientes() {
   const q = query(collection(db, "clientes"), orderBy("nombre"));
   unsubscribeClientes = onSnapshot(
     q,
-    (snap) => pintarLista(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    (snap) => {
+      const clientes = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      clientesEnMemoria = new Map(clientes.map((c) => [c.id, c]));
+      pintarLista(clientes);
+      if (clienteEnDetalleId && clientesEnMemoria.has(clienteEnDetalleId)) {
+        pintarDetalle(clientesEnMemoria.get(clienteEnDetalleId));
+      }
+    },
     (error) => {
       console.error("Error al cargar clientes:", error);
       listaClientes.innerHTML =
@@ -84,7 +92,7 @@ function crearTarjetaCliente(cliente) {
   tarjeta.querySelector(".ciudad").textContent = cliente.ciudad || "";
   tarjeta.querySelector(".telefono").textContent = cliente.telefono || "";
 
-  tarjeta.addEventListener("click", () => abrirDetalle(cliente.id));
+  tarjeta.addEventListener("click", () => abrirDetalle(cliente));
   return tarjeta;
 }
 
@@ -155,6 +163,12 @@ async function abrirFormulario(modo, id = null) {
 
   tituloModalForm.textContent = "Editar cliente";
   btnGuardar.textContent = "Guardar cambios";
+  const enMemoria = clientesEnMemoria.get(id);
+  if (enMemoria) {
+    prellenarFormulario(enMemoria);
+    abrirModal(modalForm);
+    return;
+  }
   btnGuardar.disabled = true;
   abrirModal(modalForm);
   try {
@@ -240,25 +254,10 @@ function leerFormulario() {
   };
 }
 
-async function abrirDetalle(id) {
-  clienteEnDetalleId = id;
-  contenidoDetalle.innerHTML =
-    '<p class="mensaje-vacio">Cargando...</p>';
-  tituloDetalle.textContent = "Detalle del cliente";
+function abrirDetalle(cliente) {
+  clienteEnDetalleId = cliente.id;
   abrirModal(modalDetalle);
-  try {
-    const snap = await getDoc(doc(db, "clientes", id));
-    if (!snap.exists()) {
-      contenidoDetalle.innerHTML =
-        '<p class="mensaje-vacio">Cliente no encontrado.</p>';
-      return;
-    }
-    pintarDetalle(snap.data());
-  } catch (error) {
-    console.error("Error al cargar detalle:", error);
-    contenidoDetalle.innerHTML =
-      '<p class="mensaje-vacio">No se pudo cargar el detalle.</p>';
-  }
+  pintarDetalle(cliente);
 }
 
 function pintarDetalle(cliente) {
