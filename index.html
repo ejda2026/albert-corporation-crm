@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=4" />
+  <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
 
@@ -61,10 +61,33 @@
     <section class="contenido">
       <div id="seccion-clientes" class="seccion">
         <div class="barra-acciones">
-          <h2 class="titulo-seccion">Clientes</h2>
+          <h2 class="titulo-seccion">Clientes <span id="contador-clientes" class="contador"></span></h2>
           <button id="btn-nuevo-cliente" class="boton-principal compacto">
             + Nuevo cliente
           </button>
+        </div>
+
+        <div class="barra-filtros">
+          <input
+            id="buscador-clientes"
+            type="search"
+            class="buscador"
+            placeholder="Buscar por nombre, telefono o notas..."
+            autocomplete="off"
+          />
+          <select id="filtro-ciudad" class="filtro-select">
+            <option value="">Todas las ciudades</option>
+            <option value="Navojoa">Navojoa</option>
+            <option value="Huatabampo">Huatabampo</option>
+            <option value="Etchojoa">Etchojoa</option>
+            <option value="Hermosillo">Hermosillo</option>
+            <option value="Otro">Otro</option>
+          </select>
+          <select id="filtro-tipo" class="filtro-select">
+            <option value="">Todos los tipos</option>
+            <option value="residencial">Residencial</option>
+            <option value="comercial">Comercial</option>
+          </select>
         </div>
 
         <div id="lista-clientes" class="lista-clientes" aria-live="polite">
@@ -151,6 +174,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=4"></script>
+  <script type="module" src="js/app.js?v=5"></script>
 </body>
 </html>

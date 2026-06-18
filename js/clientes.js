@@ -15,6 +15,10 @@ import { auth, db } from "./config.js";
 
 const listaClientes = document.getElementById("lista-clientes");
 const btnNuevoCliente = document.getElementById("btn-nuevo-cliente");
+const buscadorClientes = document.getElementById("buscador-clientes");
+const filtroCiudad = document.getElementById("filtro-ciudad");
+const filtroTipo = document.getElementById("filtro-tipo");
+const contadorClientes = document.getElementById("contador-clientes");
 const modalForm = document.getElementById("modal-form-cliente");
 const modalDetalle = document.getElementById("modal-detalle-cliente");
 const formCliente = document.getElementById("form-cliente");
@@ -47,7 +51,7 @@ function suscribirClientes() {
     (snap) => {
       const clientes = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       clientesEnMemoria = new Map(clientes.map((c) => [c.id, c]));
-      pintarLista(clientes);
+      repintarLista();
       if (clienteEnDetalleId && clientesEnMemoria.has(clienteEnDetalleId)) {
         pintarDetalle(clientesEnMemoria.get(clienteEnDetalleId));
       }
@@ -60,16 +64,64 @@ function suscribirClientes() {
   );
 }
 
-function pintarLista(clientes) {
-  if (clientes.length === 0) {
+function repintarLista() {
+  const todos = Array.from(clientesEnMemoria.values());
+  const filtrados = aplicarFiltros(todos);
+  actualizarContador(filtrados.length, todos.length);
+
+  if (todos.length === 0) {
     listaClientes.innerHTML =
       '<p class="mensaje-vacio">Aún no hay clientes. Agrega el primero con el botón de arriba.</p>';
     return;
   }
+  if (filtrados.length === 0) {
+    listaClientes.innerHTML =
+      '<p class="mensaje-vacio">No se encontraron clientes con esos filtros.</p>';
+    return;
+  }
   listaClientes.innerHTML = "";
-  for (const cliente of clientes) {
+  for (const cliente of filtrados) {
     listaClientes.appendChild(crearTarjetaCliente(cliente));
   }
+}
+
+function aplicarFiltros(clientes) {
+  const texto = (buscadorClientes.value || "").trim().toLowerCase();
+  const ciudad = filtroCiudad.value;
+  const tipo = filtroTipo.value;
+  return clientes.filter((c) => {
+    if (ciudad && c.ciudad !== ciudad) return false;
+    if (tipo && c.tipo !== tipo) return false;
+    if (texto) {
+      const blob = [
+        c.nombre || "",
+        c.telefono || "",
+        c.notas || "",
+        c.ciudad || ""
+      ]
+        .join(" ")
+        .toLowerCase();
+      if (!blob.includes(texto)) return false;
+    }
+    return true;
+  });
+}
+
+function actualizarContador(mostrados, total) {
+  if (total === 0) {
+    contadorClientes.textContent = "";
+    return;
+  }
+  if (mostrados === total) {
+    contadorClientes.textContent = `(${total})`;
+  } else {
+    contadorClientes.textContent = `(${mostrados} de ${total})`;
+  }
+}
+
+for (const el of [buscadorClientes, filtroCiudad, filtroTipo]) {
+  el.addEventListener("input", repintarLista);
+  el.addEventListener("change", repintarLista);
 }
 
 function crearTarjetaCliente(cliente) {
