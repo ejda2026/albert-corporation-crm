@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=5" />
+  <link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
 
@@ -56,10 +56,11 @@
 
     <nav class="nav-secciones">
       <button class="nav-boton activa" data-seccion="clientes">Clientes</button>
+      <button class="nav-boton" data-seccion="equipos">Equipos</button>
     </nav>
 
     <section class="contenido">
-      <div id="seccion-clientes" class="seccion">
+      <div id="seccion-clientes" class="seccion activa">
         <div class="barra-acciones">
           <h2 class="titulo-seccion">Clientes <span id="contador-clientes" class="contador"></span></h2>
           <button id="btn-nuevo-cliente" class="boton-principal compacto">
@@ -92,6 +93,35 @@
 
         <div id="lista-clientes" class="lista-clientes" aria-live="polite">
           <p class="mensaje-vacio">Cargando clientes...</p>
+        </div>
+      </div>
+
+      <div id="seccion-equipos" class="seccion">
+        <div class="barra-acciones">
+          <h2 class="titulo-seccion">Equipos <span id="contador-equipos" class="contador"></span></h2>
+          <button id="btn-nuevo-equipo" class="boton-principal compacto">
+            + Nuevo equipo
+          </button>
+        </div>
+
+        <div class="barra-filtros">
+          <input
+            id="buscador-equipos"
+            type="search"
+            class="buscador"
+            placeholder="Buscar por cliente, modelo o notas..."
+            autocomplete="off"
+          />
+          <select id="filtro-equipo-tipo" class="filtro-select">
+            <option value="">Todos los tipos</option>
+            <option value="planta-purificadora">Planta purificadora</option>
+            <option value="equipo-domestico">Equipo doméstico</option>
+            <option value="alberca-equipo">Equipo de alberca</option>
+          </select>
+        </div>
+
+        <div id="lista-equipos" class="lista-clientes" aria-live="polite">
+          <p class="mensaje-vacio">Cargando equipos...</p>
         </div>
       </div>
     </section>
@@ -174,6 +204,74 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=5"></script>
+  <div id="modal-form-equipo" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-form-equipo">
+    <div class="modal-fondo" data-cerrar></div>
+    <div class="modal-tarjeta">
+      <header class="modal-cabecera">
+        <h2 id="titulo-modal-form-equipo">Nuevo equipo</h2>
+        <button class="modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+      </header>
+
+      <form id="form-equipo" class="form-cliente" data-modo="nuevo">
+        <div class="campo">
+          <label for="equipo-cliente">Cliente *</label>
+          <select id="equipo-cliente" name="clienteId" required>
+            <option value="">Selecciona un cliente...</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="equipo-tipo">Tipo de equipo *</label>
+          <select id="equipo-tipo" name="tipo" required>
+            <option value="planta-purificadora">Planta purificadora</option>
+            <option value="equipo-domestico">Equipo doméstico (suavizador, filtros)</option>
+            <option value="alberca-equipo">Equipo de alberca</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="equipo-modelo">Modelo / descripción (opcional)</label>
+          <input id="equipo-modelo" name="modelo" type="text" maxlength="120" placeholder="Ej: Planta 5000 L, Suavizador 1054..." />
+        </div>
+
+        <div class="campo">
+          <label for="equipo-fecha">Fecha de instalación (opcional)</label>
+          <input id="equipo-fecha" name="fechaInstalacion" type="date" />
+        </div>
+
+        <div class="campo">
+          <label for="equipo-notas">Notas (opcional)</label>
+          <textarea id="equipo-notas" name="notas" maxlength="500" rows="3" placeholder="Componentes especiales, ubicación, garantía..."></textarea>
+        </div>
+
+        <p id="error-form-equipo" class="mensaje-error" role="alert"></p>
+
+        <div class="acciones-modal">
+          <button type="button" class="boton-secundario" data-cerrar>Cancelar</button>
+          <button type="submit" id="btn-guardar-equipo" class="boton-principal">Guardar equipo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-detalle-equipo" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-detalle-equipo">
+    <div class="modal-fondo" data-cerrar></div>
+    <div class="modal-tarjeta">
+      <header class="modal-cabecera">
+        <h2 id="titulo-modal-detalle-equipo">Detalle del equipo</h2>
+        <button class="modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+      </header>
+
+      <div id="contenido-detalle-equipo" class="detalle-cliente"></div>
+
+      <div class="acciones-modal acciones-detalle">
+        <button type="button" id="btn-eliminar-equipo" class="boton-peligro">Eliminar</button>
+        <button type="button" id="btn-editar-equipo" class="boton-secundario">Editar</button>
+        <button type="button" class="boton-principal" data-cerrar>Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js?v=6"></script>
 </body>
 </html>

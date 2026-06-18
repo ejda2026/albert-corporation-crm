@@ -12,6 +12,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { auth, db } from "./config.js";
+import {
+  getEquiposDeCliente,
+  getEtiquetaTipo,
+  onEquiposActualizados,
+  abrirNuevoEquipoParaCliente,
+  abrirDetalleEquipoPorId
+} from "./equipos.js";
 
 const listaClientes = document.getElementById("lista-clientes");
 const btnNuevoCliente = document.getElementById("btn-nuevo-cliente");
@@ -321,18 +328,75 @@ function pintarDetalle(cliente) {
     ["Notas", cliente.notas || "—"],
     ["Estado", cliente.activo === false ? "Inactivo" : "Activo"]
   ];
-  contenidoDetalle.innerHTML = filas
-    .map(
-      ([etiqueta, _]) => `
+  contenidoDetalle.innerHTML =
+    filas
+      .map(
+        ([etiqueta]) => `
         <div class="fila">
           <span class="etiqueta">${etiqueta}</span>
           <span class="valor"></span>
         </div>
       `
-    )
-    .join("");
-  const valores = contenidoDetalle.querySelectorAll(".valor");
+      )
+      .join("") +
+    `
+      <div class="subseccion-detalle">
+        <div class="barra-acciones" style="margin-bottom: 8px;">
+          <p class="subtitulo-detalle" style="margin:0;">Equipos instalados</p>
+          <button id="btn-nuevo-equipo-cliente" class="boton-secundario" style="padding:4px 10px; font-size:12px;">+ Agregar</button>
+        </div>
+        <div id="equipos-del-cliente" class="lista-equipos-cliente"></div>
+      </div>
+    `;
+  const valores = contenidoDetalle.querySelectorAll(".fila .valor");
   filas.forEach(([, valor], i) => {
     valores[i].textContent = valor;
   });
+
+  pintarEquiposDelCliente(cliente.id);
+
+  const btnAgregar = document.getElementById("btn-nuevo-equipo-cliente");
+  if (btnAgregar) {
+    btnAgregar.addEventListener("click", () => {
+      cerrarModal(modalDetalle);
+      abrirNuevoEquipoParaCliente(cliente.id);
+    });
+  }
 }
+
+function pintarEquiposDelCliente(clienteId) {
+  const contenedor = document.getElementById("equipos-del-cliente");
+  if (!contenedor) return;
+  const equipos = getEquiposDeCliente(clienteId);
+  if (equipos.length === 0) {
+    contenedor.innerHTML =
+      '<p class="mensaje-vacio-pequeño">Este cliente aún no tiene equipos registrados.</p>';
+    return;
+  }
+  contenedor.innerHTML = "";
+  for (const eq of equipos) {
+    const item = document.createElement("div");
+    item.className = "item-equipo-cliente";
+    item.innerHTML = `
+      <div class="titulo-equipo"></div>
+      <div class="meta-equipo"></div>
+    `;
+    item.querySelector(".titulo-equipo").textContent = getEtiquetaTipo(eq.tipo);
+    const partes = [];
+    if (eq.modelo) partes.push(eq.modelo);
+    if (eq.fechaInstalacion) {
+      const [y, m, d] = eq.fechaInstalacion.split("-");
+      partes.push(`Instalado ${d}/${m}/${y}`);
+    }
+    item.querySelector(".meta-equipo").textContent = partes.join(" — ");
+    item.addEventListener("click", () => {
+      cerrarModal(modalDetalle);
+      abrirDetalleEquipoPorId(eq.id);
+    });
+    contenedor.appendChild(item);
+  }
+}
+
+onEquiposActualizados(() => {
+  if (clienteEnDetalleId) pintarEquiposDelCliente(clienteEnDetalleId);
+});
