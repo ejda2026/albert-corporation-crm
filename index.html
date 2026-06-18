@@ -54,12 +54,99 @@
       </div>
     </header>
 
+    <nav class="nav-secciones">
+      <button class="nav-boton activa" data-seccion="clientes">Clientes</button>
+    </nav>
+
     <section class="contenido">
-      <div class="bienvenida">
-        <h2>Bienvenido</h2>
-        <p>El CRM está listo. Los módulos (clientes, equipos, mantenimientos) se irán activando en los próximos pasos.</p>
+      <div id="seccion-clientes" class="seccion">
+        <div class="barra-acciones">
+          <h2 class="titulo-seccion">Clientes</h2>
+          <button id="btn-nuevo-cliente" class="boton-principal compacto">
+            + Nuevo cliente
+          </button>
+        </div>
+
+        <div id="lista-clientes" class="lista-clientes" aria-live="polite">
+          <p class="mensaje-vacio">Cargando clientes...</p>
+        </div>
       </div>
     </section>
+  </div>
+
+  <div id="modal-nuevo-cliente" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-nuevo">
+    <div class="modal-fondo" data-cerrar></div>
+    <div class="modal-tarjeta">
+      <header class="modal-cabecera">
+        <h2 id="titulo-modal-nuevo">Nuevo cliente</h2>
+        <button class="modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+      </header>
+
+      <form id="form-nuevo-cliente" class="form-cliente">
+        <div class="campo">
+          <label>Tipo de cliente *</label>
+          <div class="grupo-radio">
+            <label class="opcion-radio">
+              <input type="radio" name="tipo" value="residencial" checked />
+              <span>Residencial</span>
+            </label>
+            <label class="opcion-radio">
+              <input type="radio" name="tipo" value="comercial" />
+              <span>Comercial</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="nuevo-nombre">Nombre o razón social *</label>
+          <input id="nuevo-nombre" name="nombre" type="text" required maxlength="120" />
+        </div>
+
+        <div class="campo">
+          <label for="nuevo-telefono">Teléfono *</label>
+          <input id="nuevo-telefono" name="telefono" type="tel" required maxlength="20" placeholder="6421234567" />
+        </div>
+
+        <div class="campo">
+          <label for="nuevo-ciudad">Ciudad / zona *</label>
+          <select id="nuevo-ciudad" name="ciudad" required>
+            <option value="Navojoa">Navojoa</option>
+            <option value="Huatabampo">Huatabampo</option>
+            <option value="Etchojoa">Etchojoa</option>
+            <option value="Hermosillo">Hermosillo</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="nuevo-notas">Notas (opcional)</label>
+          <textarea id="nuevo-notas" name="notas" maxlength="500" rows="3" placeholder="Cualquier dato adicional..."></textarea>
+        </div>
+
+        <p id="error-nuevo-cliente" class="mensaje-error" role="alert"></p>
+
+        <div class="acciones-modal">
+          <button type="button" class="boton-secundario" data-cerrar>Cancelar</button>
+          <button type="submit" id="btn-guardar-cliente" class="boton-principal">Guardar cliente</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-detalle-cliente" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-detalle">
+    <div class="modal-fondo" data-cerrar></div>
+    <div class="modal-tarjeta">
+      <header class="modal-cabecera">
+        <h2 id="titulo-modal-detalle">Detalle del cliente</h2>
+        <button class="modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+      </header>
+
+      <div id="contenido-detalle-cliente" class="detalle-cliente"></div>
+
+      <div class="acciones-modal">
+        <button type="button" class="boton-secundario" data-cerrar>Cerrar</button>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="js/app.js"></script>
