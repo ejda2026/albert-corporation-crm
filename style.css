@@ -620,6 +620,116 @@ form input:focus {
   font-size: 12px;
 }
 
+.ayuda-campo {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  color: var(--color-texto-2);
+  font-style: italic;
+}
+
+.lista-componentes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-componente {
+  background: var(--color-fondo-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.item-componente.vencido {
+  background: var(--color-error-suave);
+  border-color: rgba(179, 38, 30, 0.25);
+}
+
+.item-componente.proximo {
+  background: #fff8e1;
+  border-color: #f0c14b;
+}
+
+.item-componente .info-componente {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item-componente .nombre-componente {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-texto);
+}
+
+.item-componente .meta-componente {
+  font-size: 12px;
+  color: var(--color-texto-2);
+}
+
+.item-componente .estado-componente {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.item-componente.vencido .estado-componente {
+  color: var(--color-error);
+}
+
+.item-componente.proximo .estado-componente {
+  color: #b8860b;
+}
+
+.item-componente.al-dia .estado-componente {
+  color: var(--color-exito);
+}
+
+.acciones-componente {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.boton-mini {
+  padding: 5px 10px;
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  border: 1px solid var(--color-borde);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.boton-mini:hover {
+  border-color: var(--color-primario);
+}
+
+.boton-mini.peligro {
+  color: var(--color-error);
+}
+
+.boton-mini.peligro:hover {
+  background: var(--color-error-suave);
+  border-color: var(--color-error);
+}
+
+.boton-mini.principal {
+  background: var(--color-primario);
+  color: white;
+  border-color: var(--color-primario);
+}
+
+.boton-mini.principal:hover {
+  background: var(--color-primario-hover);
+}
+
 .mensaje-vacio-pequeño {
   color: var(--color-texto-2);
   font-size: 13px;

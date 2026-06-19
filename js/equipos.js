@@ -12,6 +12,16 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { auth, db } from "./config.js";
+import {
+  COMPONENTES,
+  abrirModalAgregarComponente,
+  abrirModalEditarComponente,
+  eliminarComponente,
+  marcarMantenimientoRealizado,
+  calcularProximoMantenimiento,
+  estadoDeMantenimiento,
+  formatearFechaCorta
+} from "./componentes.js";
 
 const ETIQUETAS_TIPO = {
   "planta-purificadora": "Planta purificadora",
@@ -396,19 +406,119 @@ function pintarDetalle(equipo) {
     ["Notas", equipo.notas || "—"],
     ["Estado", equipo.activo === false ? "Inactivo" : "Activo"]
   ];
-  contenidoDetalle.innerHTML = filas
-    .map(
-      ([etiqueta]) => `
+  contenidoDetalle.innerHTML =
+    filas
+      .map(
+        ([etiqueta]) => `
         <div class="fila">
           <span class="etiqueta">${etiqueta}</span>
           <span class="valor"></span>
         </div>
       `
-    )
-    .join("");
-  const valores = contenidoDetalle.querySelectorAll(".valor");
+      )
+      .join("") +
+    `
+      <div class="subseccion-detalle">
+        <div class="barra-acciones" style="margin-bottom: 8px;">
+          <p class="subtitulo-detalle" style="margin:0;">Componentes y mantenimientos</p>
+          <button id="btn-agregar-componente" class="boton-secundario" style="padding:4px 10px; font-size:12px;">+ Agregar</button>
+        </div>
+        <div id="lista-componentes-equipo" class="lista-componentes"></div>
+      </div>
+    `;
+  const valores = contenidoDetalle.querySelectorAll(".fila .valor");
   filas.forEach(([, valor], i) => {
     valores[i].textContent = valor;
+  });
+
+  pintarComponentes(equipo);
+
+  document
+    .getElementById("btn-agregar-componente")
+    .addEventListener("click", () => {
+      abrirModalAgregarComponente(equipo);
+    });
+}
+
+function pintarComponentes(equipo) {
+  const contenedor = document.getElementById("lista-componentes-equipo");
+  if (!contenedor) return;
+  const componentes = Array.isArray(equipo.componentes)
+    ? equipo.componentes
+    : [];
+  if (componentes.length === 0) {
+    contenedor.innerHTML =
+      '<p class="mensaje-vacio-pequeño">Aún no hay componentes. Agrega filtros, suavizador, sal, etc.</p>';
+    return;
+  }
+  contenedor.innerHTML = "";
+  componentes.forEach((comp, i) => {
+    const proxima = calcularProximoMantenimiento(comp, equipo);
+    const estado = estadoDeMantenimiento(proxima);
+    const item = document.createElement("div");
+    item.className = `item-componente ${estado.tipo}`;
+    const etiquetaComp =
+      COMPONENTES[comp.tipo]?.etiqueta || comp.tipo || "Componente";
+    let textoEstado;
+    if (estado.tipo === "vencido") {
+      textoEstado = `Vencido hace ${estado.dias} día${estado.dias === 1 ? "" : "s"}`;
+    } else if (estado.tipo === "proximo") {
+      textoEstado = estado.dias === 0
+        ? "Toca hoy"
+        : `En ${estado.dias} día${estado.dias === 1 ? "" : "s"}`;
+    } else {
+      textoEstado = `Faltan ${estado.dias} días`;
+    }
+    item.innerHTML = `
+      <div class="info-componente">
+        <span class="nombre-componente"></span>
+        <span class="meta-componente"></span>
+        <span class="estado-componente"></span>
+      </div>
+      <div class="acciones-componente">
+        <button type="button" class="boton-mini principal" data-accion="marcar">Marcar realizado</button>
+        <button type="button" class="boton-mini" data-accion="editar">Editar</button>
+        <button type="button" class="boton-mini peligro" data-accion="eliminar">Eliminar</button>
+      </div>
+    `;
+    item.querySelector(".nombre-componente").textContent = etiquetaComp;
+    const ultimo = comp.ultimoMantenimiento
+      ? `Último: ${formatearFechaCorta(comp.ultimoMantenimiento)}`
+      : "Sin mantenimiento previo";
+    item.querySelector(".meta-componente").textContent =
+      `${ultimo} — Cada ${comp.frecuenciaMeses} mes${comp.frecuenciaMeses === 1 ? "" : "es"} — Próximo: ${formatearFechaCorta(proxima)}`;
+    item.querySelector(".estado-componente").textContent = textoEstado;
+
+    item
+      .querySelector('[data-accion="marcar"]')
+      .addEventListener("click", async () => {
+        try {
+          await marcarMantenimientoRealizado(equipo, i);
+        } catch (err) {
+          console.error("Error al marcar mantenimiento:", err);
+          window.alert("No se pudo marcar el mantenimiento.");
+        }
+      });
+    item
+      .querySelector('[data-accion="editar"]')
+      .addEventListener("click", () => {
+        abrirModalEditarComponente(equipo, i);
+      });
+    item
+      .querySelector('[data-accion="eliminar"]')
+      .addEventListener("click", async () => {
+        const ok = window.confirm(
+          `Eliminar "${etiquetaComp}" de este equipo?`
+        );
+        if (!ok) return;
+        try {
+          await eliminarComponente(equipo, i);
+        } catch (err) {
+          console.error("Error al eliminar componente:", err);
+          window.alert("No se pudo eliminar.");
+        }
+      });
+    contenedor.appendChild(item);
   });
 }
 

@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
 
@@ -254,6 +254,56 @@
     </div>
   </div>
 
+  <div id="modal-form-componente" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-componente">
+    <div class="modal-fondo" data-cerrar></div>
+    <div class="modal-tarjeta">
+      <header class="modal-cabecera">
+        <h2 id="titulo-modal-componente">Agregar componente</h2>
+        <button class="modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+      </header>
+
+      <form id="form-componente" class="form-cliente">
+        <div class="campo">
+          <label for="comp-tipo">Componente *</label>
+          <select id="comp-tipo" name="tipo" required>
+            <option value="sal-pellets">Sal en pellets (suavizador)</option>
+            <option value="carbon">Filtro de carbón</option>
+            <option value="resina">Resina</option>
+            <option value="turbidex">Turbidex</option>
+            <option value="lampara-uv">Lámpara UV</option>
+            <option value="preventivo">Mantenimiento preventivo general</option>
+            <option value="filtro-alberca">Filtro de alberca</option>
+            <option value="quimicos-alberca">Químicos de alberca</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="comp-frecuencia">Frecuencia (cada cuántos meses) *</label>
+          <input id="comp-frecuencia" name="frecuenciaMeses" type="number" min="1" max="60" required />
+        </div>
+
+        <div class="campo">
+          <label for="comp-ultimo">Último mantenimiento (opcional)</label>
+          <input id="comp-ultimo" name="ultimoMantenimiento" type="date" />
+          <p class="ayuda-campo">Si lo dejas vacío, el sistema usará la fecha de instalación del equipo o la fecha de hoy.</p>
+        </div>
+
+        <div class="campo">
+          <label for="comp-notas">Notas (opcional)</label>
+          <textarea id="comp-notas" name="notas" maxlength="200" rows="2"></textarea>
+        </div>
+
+        <p id="error-form-componente" class="mensaje-error" role="alert"></p>
+
+        <div class="acciones-modal">
+          <button type="button" class="boton-secundario" data-cerrar>Cancelar</button>
+          <button type="submit" id="btn-guardar-componente" class="boton-principal">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="modal-detalle-equipo" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-detalle-equipo">
     <div class="modal-fondo" data-cerrar></div>
     <div class="modal-tarjeta">
@@ -272,6 +322,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=6"></script>
+  <script type="module" src="js/app.js?v=7"></script>
 </body>
 </html>
