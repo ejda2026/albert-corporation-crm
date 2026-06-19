@@ -20,6 +20,12 @@ import {
   formatearFechaCorta,
   marcarMantenimientoRealizado
 } from "./componentes.js";
+import {
+  getTotalPorCobrar,
+  getCantidadVencidas,
+  getCantidadPendientes,
+  onVentasActualizadas
+} from "./ventas.js";
 
 const elMantVencidos = document.getElementById("dash-mant-vencidos");
 const elMantProximos = document.getElementById("dash-mant-proximos");
@@ -37,6 +43,11 @@ const elEquiposDomesticos = document.getElementById("dash-equipos-domesticos");
 const elEquiposAlbercas = document.getElementById("dash-equipos-albercas");
 const elListaUrgentes = document.getElementById("dash-lista-urgentes");
 const btnVerTodos = document.getElementById("dash-ver-todos");
+const elPorCobrar = document.getElementById("dash-por-cobrar");
+const elPorCobrarVencidas = document.getElementById("dash-por-cobrar-vencidas");
+const elPorCobrarCantidad = document.getElementById(
+  "dash-por-cobrar-cantidad"
+);
 
 let clientesDelDash = new Map();
 let unsubClientesDash = null;
@@ -62,6 +73,7 @@ function suscribirClientesDash() {
 }
 
 onEquiposActualizados(() => repintarDashboard());
+onVentasActualizadas(() => repintarDashboard());
 
 btnVerTodos.addEventListener("click", () => {
   const btnTab = document.querySelector('[data-seccion="mantenimientos"]');
@@ -74,7 +86,19 @@ function repintarDashboard() {
   pintarResumenClientes();
   pintarResumenEquipos();
   pintarResumenMantenimientos();
+  pintarResumenCobranza();
   pintarListaUrgentes();
+}
+
+function pintarResumenCobranza() {
+  const total = getTotalPorCobrar();
+  elPorCobrar.textContent = total.toLocaleString("es-MX", {
+    style: "currency",
+    currency: "MXN",
+    minimumFractionDigits: 2
+  });
+  elPorCobrarVencidas.textContent = getCantidadVencidas(30);
+  elPorCobrarCantidad.textContent = getCantidadPendientes();
 }
 
 function pintarResumenClientes() {

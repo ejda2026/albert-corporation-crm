@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=12" />
+  <link rel="stylesheet" href="style.css?v=13" />
 </head>
 <body>
 
@@ -58,6 +58,7 @@
       <button class="nav-boton activa" data-seccion="dashboard">Inicio</button>
       <button class="nav-boton" data-seccion="clientes">Clientes</button>
       <button class="nav-boton" data-seccion="mantenimientos">Mantenimientos</button>
+      <button class="nav-boton" data-seccion="ventas">Ventas</button>
     </nav>
 
     <section class="contenido">
@@ -95,6 +96,16 @@
               <span><span id="dash-equipos-plantas">0</span> plantas</span>
               <span><span id="dash-equipos-domesticos">0</span> domésticos</span>
               <span><span id="dash-equipos-albercas">0</span> albercas</span>
+            </div>
+          </div>
+
+          <div class="card-dashboard">
+            <div class="card-cabecera">Por cobrar</div>
+            <div class="card-numero card-numero-rojo" id="dash-por-cobrar">$0.00</div>
+            <div class="card-etiqueta">Pendiente de cobro</div>
+            <div class="card-detalle">
+              <span><span id="dash-por-cobrar-vencidas">0</span> con más de 30 días</span>
+              <span><span id="dash-por-cobrar-cantidad">0</span> ventas pendientes</span>
             </div>
           </div>
         </div>
@@ -141,6 +152,46 @@
 
         <div id="lista-clientes" class="lista-clientes" aria-live="polite">
           <p class="mensaje-vacio">Cargando clientes...</p>
+        </div>
+      </div>
+
+      <div id="seccion-ventas" class="seccion">
+        <div class="barra-acciones">
+          <h2 class="titulo-seccion">Ventas <span id="contador-ventas" class="contador"></span></h2>
+          <button id="btn-nueva-venta" class="boton-principal compacto">
+            + Nueva venta
+          </button>
+        </div>
+
+        <div class="barra-filtros barra-filtros-4">
+          <input
+            id="buscador-ventas"
+            type="search"
+            class="buscador"
+            placeholder="Buscar por cliente, concepto o notas..."
+            autocomplete="off"
+          />
+          <select id="filtro-venta-estado" class="filtro-select">
+            <option value="">Todos los estados</option>
+            <option value="pendiente">Pendientes de cobro</option>
+            <option value="parcial">Pago parcial</option>
+            <option value="pagado">Pagadas</option>
+          </select>
+          <select id="filtro-venta-metodo" class="filtro-select">
+            <option value="">Todos los métodos</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="transferencia">Transferencia</option>
+          </select>
+          <select id="filtro-venta-factura" class="filtro-select">
+            <option value="">Factura: todas</option>
+            <option value="si">Sí pidió factura</option>
+            <option value="no">No pidió factura</option>
+            <option value="pendiente">Falta facturar</option>
+          </select>
+        </div>
+
+        <div id="lista-ventas" class="lista-componentes" aria-live="polite">
+          <p class="mensaje-vacio">Cargando ventas...</p>
         </div>
       </div>
 
@@ -319,6 +370,105 @@
     </div>
   </div>
 
+  <div id="modal-form-venta" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-form-venta">
+    <div class="modal-fondo" data-cerrar></div>
+    <div class="modal-tarjeta">
+      <header class="modal-cabecera">
+        <h2 id="titulo-modal-form-venta">Nueva venta</h2>
+        <button class="modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+      </header>
+
+      <form id="form-venta" class="form-cliente" data-modo="nuevo">
+        <div class="campo">
+          <label for="venta-cliente">Cliente *</label>
+          <select id="venta-cliente" name="clienteId" required>
+            <option value="">Selecciona un cliente...</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="venta-tipo">Tipo de venta *</label>
+          <select id="venta-tipo" name="tipo" required>
+            <option value="insumo">Insumo (sal, filtros, químicos)</option>
+            <option value="servicio">Servicio (instalación, mantenimiento)</option>
+            <option value="venta-equipo">Venta de equipo</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="venta-concepto">Concepto *</label>
+          <textarea id="venta-concepto" name="concepto" required maxlength="500" rows="3" placeholder="Ej: 2 sacos de sal en pellets, servicio de cambio de filtros, instalación de planta..."></textarea>
+        </div>
+
+        <div class="campo">
+          <label for="venta-fecha">Fecha *</label>
+          <input id="venta-fecha" name="fecha" type="date" required />
+        </div>
+
+        <div class="campo">
+          <label for="venta-monto">Monto total (MXN) *</label>
+          <input id="venta-monto" name="monto" type="number" min="0" step="0.01" required placeholder="0.00" />
+        </div>
+
+        <div class="campo">
+          <label for="venta-estado">Estado de pago *</label>
+          <select id="venta-estado" name="estadoPago" required>
+            <option value="pendiente">Pendiente de cobro</option>
+            <option value="parcial">Pago parcial</option>
+            <option value="pagado">Pagada completa</option>
+          </select>
+        </div>
+
+        <div class="campo" id="campo-metodo-pago">
+          <label for="venta-metodo">Método de pago</label>
+          <select id="venta-metodo" name="metodoPago">
+            <option value="">Sin definir</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="transferencia">Transferencia</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label class="opcion-radio" style="cursor:pointer;">
+            <input type="checkbox" id="venta-requiere-factura" />
+            <span>El cliente pidió factura</span>
+          </label>
+        </div>
+
+        <div class="campo">
+          <label for="venta-notas">Notas (opcional)</label>
+          <textarea id="venta-notas" name="notas" maxlength="500" rows="2"></textarea>
+        </div>
+
+        <p id="error-form-venta" class="mensaje-error" role="alert"></p>
+
+        <div class="acciones-modal">
+          <button type="button" class="boton-secundario" data-cerrar>Cancelar</button>
+          <button type="submit" id="btn-guardar-venta" class="boton-principal">Guardar venta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-detalle-venta" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-detalle-venta">
+    <div class="modal-fondo" data-cerrar></div>
+    <div class="modal-tarjeta">
+      <header class="modal-cabecera">
+        <h2 id="titulo-modal-detalle-venta">Detalle de venta</h2>
+        <button class="modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+      </header>
+
+      <div id="contenido-detalle-venta" class="detalle-cliente"></div>
+
+      <div class="acciones-modal acciones-detalle">
+        <button type="button" id="btn-eliminar-venta" class="boton-peligro">Eliminar</button>
+        <button type="button" id="btn-editar-venta" class="boton-secundario">Editar</button>
+        <button type="button" id="btn-marcar-pagada" class="boton-principal">Marcar pagada</button>
+      </div>
+    </div>
+  </div>
+
   <div id="modal-form-componente" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-componente">
     <div class="modal-fondo" data-cerrar></div>
     <div class="modal-tarjeta">
@@ -387,6 +537,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=12"></script>
+  <script type="module" src="js/app.js?v=13"></script>
 </body>
 </html>
