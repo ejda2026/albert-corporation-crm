@@ -6,4 +6,5 @@ import "./clientes.js";
 import "./equipos.js";
 import "./mantenimientos.js";
 import "./ventas.js";
+import "./configuracion.js";
 import "./dashboard.js";
