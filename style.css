@@ -436,7 +436,8 @@ form input:focus {
   z-index: 100;
 }
 
-#modal-form-componente {
+#modal-form-componente,
+#modal-cobrar-venta {
   z-index: 200;
 }
 

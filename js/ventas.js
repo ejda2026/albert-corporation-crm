@@ -329,23 +329,74 @@ btnEliminar.addEventListener("click", async () => {
   }
 });
 
-btnMarcarPagada.addEventListener("click", async () => {
+const modalCobrar = document.getElementById("modal-cobrar-venta");
+const formCobrar = document.getElementById("form-cobrar");
+const cobrarMetodo = document.getElementById("cobrar-metodo");
+const cobrarMonto = document.getElementById("cobrar-monto");
+const cobrarFecha = document.getElementById("cobrar-fecha");
+const cobrarInfo = document.getElementById("cobrar-info");
+const errorCobrar = document.getElementById("error-form-cobrar");
+const btnConfirmarCobro = document.getElementById("btn-confirmar-cobro");
+
+btnMarcarPagada.addEventListener("click", () => {
   if (!ventaEnDetalleId) return;
   const v = ventasEnMemoria.get(ventaEnDetalleId);
   if (!v) return;
+  const cliente = clientesEnMemoria.get(v.clienteId);
+  const restante = (v.monto || 0) - (v.montoPagado || 0);
+  cobrarInfo.textContent = `Cliente: ${cliente?.nombre || "(cliente)"} — Total: ${formatearMoneda(v.monto)}${v.montoPagado ? " — Ya pagado: " + formatearMoneda(v.montoPagado) : ""}`;
+  cobrarMetodo.value = v.metodoPago || "efectivo";
+  cobrarMonto.value = restante.toFixed(2);
+  cobrarFecha.value = hoyISO();
+  errorCobrar.textContent = "";
+  abrirModal(modalCobrar);
+});
+
+for (const el of modalCobrar.querySelectorAll("[data-cerrar]")) {
+  el.addEventListener("click", () => cerrarModal(modalCobrar));
+}
+
+formCobrar.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  errorCobrar.textContent = "";
+  if (!ventaEnDetalleId) return;
+  const v = ventasEnMemoria.get(ventaEnDetalleId);
+  if (!v) return;
+
+  const metodo = cobrarMetodo.value;
+  const montoCobrado = parseFloat(cobrarMonto.value) || 0;
+  const fecha = cobrarFecha.value || hoyISO();
+  if (montoCobrado <= 0) {
+    errorCobrar.textContent = "El monto cobrado debe ser mayor a 0.";
+    return;
+  }
+  const yaPagado = v.montoPagado || 0;
+  const totalPagado = yaPagado + montoCobrado;
+  const total = v.monto || 0;
+  if (totalPagado > total + 0.01) {
+    errorCobrar.textContent = `Te estás cobrando ${formatearMoneda(totalPagado - total)} de más. Revisa el monto.`;
+    return;
+  }
+  const nuevoEstado = totalPagado >= total - 0.01 ? "pagado" : "parcial";
+
+  btnConfirmarCobro.disabled = true;
+  const textoOriginal = btnConfirmarCobro.textContent;
+  btnConfirmarCobro.textContent = "Guardando...";
   try {
-    btnMarcarPagada.disabled = true;
     await updateDoc(doc(db, "ventas", ventaEnDetalleId), {
-      estadoPago: "pagado",
-      montoPagado: v.monto || 0,
-      fechaPago: hoyISO(),
+      estadoPago: nuevoEstado,
+      montoPagado: totalPagado,
+      metodoPago: metodo,
+      fechaPago: fecha,
       fechaActualizacion: serverTimestamp()
     });
+    cerrarModal(modalCobrar);
   } catch (error) {
-    console.error("Error al marcar pagada:", error);
-    window.alert("No se pudo marcar como pagada.");
+    console.error("Error al registrar cobro:", error);
+    errorCobrar.textContent = "No se pudo registrar el cobro. Intenta de nuevo.";
   } finally {
-    btnMarcarPagada.disabled = false;
+    btnConfirmarCobro.disabled = false;
+    btnConfirmarCobro.textContent = textoOriginal;
   }
 });
 

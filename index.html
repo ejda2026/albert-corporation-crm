@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=13" />
+  <link rel="stylesheet" href="style.css?v=14" />
 </head>
 <body>
 
@@ -469,6 +469,46 @@
     </div>
   </div>
 
+  <div id="modal-cobrar-venta" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-cobrar">
+    <div class="modal-fondo" data-cerrar></div>
+    <div class="modal-tarjeta">
+      <header class="modal-cabecera">
+        <h2 id="titulo-modal-cobrar">Registrar cobro</h2>
+        <button class="modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+      </header>
+
+      <form id="form-cobrar" class="form-cliente">
+        <p id="cobrar-info" class="ayuda-campo" style="margin: 0 0 14px 0; font-style: normal;"></p>
+
+        <div class="campo">
+          <label for="cobrar-metodo">Método de pago *</label>
+          <select id="cobrar-metodo" name="metodoPago" required>
+            <option value="efectivo">Efectivo</option>
+            <option value="transferencia">Transferencia</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="cobrar-monto">Monto cobrado (MXN) *</label>
+          <input id="cobrar-monto" name="monto" type="number" min="0" step="0.01" required />
+          <p class="ayuda-campo">Si es menor al total, queda como pago parcial.</p>
+        </div>
+
+        <div class="campo">
+          <label for="cobrar-fecha">Fecha del cobro *</label>
+          <input id="cobrar-fecha" name="fecha" type="date" required />
+        </div>
+
+        <p id="error-form-cobrar" class="mensaje-error" role="alert"></p>
+
+        <div class="acciones-modal">
+          <button type="button" class="boton-secundario" data-cerrar>Cancelar</button>
+          <button type="submit" id="btn-confirmar-cobro" class="boton-principal">Confirmar cobro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="modal-form-componente" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-componente">
     <div class="modal-fondo" data-cerrar></div>
     <div class="modal-tarjeta">
@@ -537,6 +577,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=13"></script>
+  <script type="module" src="js/app.js?v=14"></script>
 </body>
 </html>
