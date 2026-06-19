@@ -451,19 +451,32 @@ form input:focus {
   max-width: 640px;
 }
 
+.tarjeta-ajustes {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  padding: 20px 22px;
+  box-shadow: var(--sombra);
+  margin-bottom: 16px;
+  max-width: 720px;
+}
+
 .subtitulo-ajustes {
-  margin: 20px 0 10px 0;
+  margin: 0 0 14px 0;
   font-size: 13px;
   font-weight: 600;
   color: var(--color-primario);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   border-bottom: 1px solid var(--color-borde);
-  padding-bottom: 6px;
+  padding-bottom: 8px;
 }
 
-.subtitulo-ajustes:first-of-type {
-  margin-top: 0;
+.acciones-ajustes {
+  max-width: 720px;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 
 code {

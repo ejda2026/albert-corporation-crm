@@ -1,18 +1,17 @@
 import {
   doc,
-  getDoc,
   setDoc,
   onSnapshot,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { auth, db } from "./config.js";
+import { activarSeccion } from "./navegacion.js";
 
 let configActual = null;
 let unsubscribeConfig = null;
 const listenersExternos = new Set();
 
-const modal = document.getElementById("modal-ajustes");
 const btnAbrir = document.getElementById("btn-ajustes");
 const form = document.getElementById("form-ajustes");
 const btnGuardar = document.getElementById("btn-guardar-ajustes");
@@ -77,17 +76,7 @@ function suscribir() {
 
 btnAbrir.addEventListener("click", () => {
   cargarFormulario();
-  modal.classList.remove("oculto");
-});
-
-for (const el of modal.querySelectorAll("[data-cerrar]")) {
-  el.addEventListener("click", () => modal.classList.add("oculto"));
-}
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && !modal.classList.contains("oculto")) {
-    modal.classList.add("oculto");
-  }
+  activarSeccion("ajustes");
 });
 
 function cargarFormulario() {
@@ -130,9 +119,15 @@ form.addEventListener("submit", async (e) => {
   };
   try {
     await setDoc(doc(db, "configuracion", "general"), datos, { merge: true });
-    modal.classList.add("oculto");
+    errorEl.textContent = "Guardado correctamente.";
+    errorEl.style.color = "var(--color-exito)";
+    setTimeout(() => {
+      errorEl.textContent = "";
+      errorEl.style.color = "";
+    }, 2500);
   } catch (error) {
     console.error("Error al guardar configuracion:", error);
+    errorEl.style.color = "";
     errorEl.textContent =
       "No se pudo guardar. Solo el rol admin puede editar ajustes.";
   } finally {

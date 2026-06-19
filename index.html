@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=17" />
+  <link rel="stylesheet" href="style.css?v=18" />
 </head>
 <body>
 
@@ -241,6 +241,82 @@
           <p class="mensaje-vacio">Cargando mantenimientos...</p>
         </div>
       </div>
+
+      <div id="seccion-ajustes" class="seccion">
+        <div class="barra-acciones">
+          <h2 class="titulo-seccion">Ajustes del negocio</h2>
+        </div>
+
+        <form id="form-ajustes" class="form-cliente">
+          <div class="tarjeta-ajustes">
+            <h3 class="subtitulo-ajustes">Datos del negocio</h3>
+            <div class="campo">
+              <label for="aj-nombre-negocio">Nombre comercial</label>
+              <input id="aj-nombre-negocio" type="text" maxlength="120" placeholder="Albert Corporation" />
+            </div>
+            <div class="campo">
+              <label for="aj-telefono">Teléfono / WhatsApp del negocio</label>
+              <input id="aj-telefono" type="tel" maxlength="20" placeholder="6421234567" />
+            </div>
+            <div class="campo">
+              <label for="aj-email">Correo electrónico</label>
+              <input id="aj-email" type="email" maxlength="120" placeholder="contacto@..." />
+            </div>
+            <div class="campo">
+              <label for="aj-direccion">Dirección física</label>
+              <textarea id="aj-direccion" maxlength="200" rows="2"></textarea>
+            </div>
+          </div>
+
+          <div class="tarjeta-ajustes">
+            <h3 class="subtitulo-ajustes">Datos fiscales (para facturar)</h3>
+            <p class="ayuda-campo" style="margin: 0 0 12px 0; font-style: normal;">Estos datos se copian al emitir cada factura en Facturamelo.</p>
+            <div class="campo">
+              <label for="aj-razon-social">Razón social</label>
+              <input id="aj-razon-social" type="text" maxlength="160" />
+            </div>
+            <div class="campo">
+              <label for="aj-rfc">RFC del emisor</label>
+              <input id="aj-rfc" type="text" maxlength="13" style="text-transform: uppercase;" />
+            </div>
+            <div class="campo">
+              <label for="aj-regimen">Régimen fiscal</label>
+              <input id="aj-regimen" type="text" maxlength="100" placeholder="Ej: Régimen Simplificado de Confianza" />
+            </div>
+            <div class="campo">
+              <label for="aj-cp">Código postal del domicilio fiscal</label>
+              <input id="aj-cp" type="text" maxlength="5" pattern="[0-9]{5}" />
+            </div>
+          </div>
+
+          <div class="tarjeta-ajustes">
+            <h3 class="subtitulo-ajustes">Plantillas de WhatsApp</h3>
+            <p class="ayuda-campo" style="margin: 0 0 12px 0; font-style: normal;">Variables disponibles: <code>{cliente}</code>, <code>{negocio}</code>, <code>{componente}</code>, <code>{equipo}</code>, <code>{fecha}</code>, <code>{monto}</code>, <code>{concepto}</code>. Si dejas el campo vacío, se usa el texto por defecto.</p>
+            <div class="campo">
+              <label for="aj-plantilla-vencido">Mantenimiento vencido</label>
+              <textarea id="aj-plantilla-vencido" maxlength="600" rows="3"></textarea>
+            </div>
+            <div class="campo">
+              <label for="aj-plantilla-proximo">Mantenimiento próximo</label>
+              <textarea id="aj-plantilla-proximo" maxlength="600" rows="3"></textarea>
+            </div>
+            <div class="campo">
+              <label for="aj-plantilla-aldia">Mantenimiento al día (aviso temprano)</label>
+              <textarea id="aj-plantilla-aldia" maxlength="600" rows="3"></textarea>
+            </div>
+            <div class="campo">
+              <label for="aj-plantilla-cobro">Cobro pendiente</label>
+              <textarea id="aj-plantilla-cobro" maxlength="600" rows="3"></textarea>
+            </div>
+          </div>
+
+          <p id="error-ajustes" class="mensaje-error" role="alert"></p>
+
+          <div class="acciones-ajustes">
+            <button type="submit" id="btn-guardar-ajustes" class="boton-principal compacto">Guardar ajustes</button>
+          </div>
+        </form>
+      </div>
     </section>
   </div>
 
@@ -470,80 +546,6 @@
     </div>
   </div>
 
-  <div id="modal-ajustes" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-ajustes">
-    <div class="modal-fondo" data-cerrar></div>
-    <div class="modal-tarjeta modal-ancho">
-      <header class="modal-cabecera">
-        <h2 id="titulo-modal-ajustes">Ajustes del negocio</h2>
-        <button class="modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
-      </header>
-
-      <form id="form-ajustes" class="form-cliente">
-        <h3 class="subtitulo-ajustes">Datos del negocio</h3>
-        <div class="campo">
-          <label for="aj-nombre-negocio">Nombre comercial</label>
-          <input id="aj-nombre-negocio" type="text" maxlength="120" placeholder="Albert Corporation" />
-        </div>
-        <div class="campo">
-          <label for="aj-telefono">Teléfono / WhatsApp del negocio</label>
-          <input id="aj-telefono" type="tel" maxlength="20" placeholder="6421234567" />
-        </div>
-        <div class="campo">
-          <label for="aj-email">Correo electrónico</label>
-          <input id="aj-email" type="email" maxlength="120" placeholder="contacto@..." />
-        </div>
-        <div class="campo">
-          <label for="aj-direccion">Dirección física</label>
-          <textarea id="aj-direccion" maxlength="200" rows="2"></textarea>
-        </div>
-
-        <h3 class="subtitulo-ajustes">Datos fiscales (para facturar)</h3>
-        <p class="ayuda-campo" style="margin: 0 0 12px 0; font-style: normal;">Estos datos se copian al emitir cada factura en Facturamelo.</p>
-        <div class="campo">
-          <label for="aj-razon-social">Razón social</label>
-          <input id="aj-razon-social" type="text" maxlength="160" />
-        </div>
-        <div class="campo">
-          <label for="aj-rfc">RFC del emisor</label>
-          <input id="aj-rfc" type="text" maxlength="13" style="text-transform: uppercase;" />
-        </div>
-        <div class="campo">
-          <label for="aj-regimen">Régimen fiscal</label>
-          <input id="aj-regimen" type="text" maxlength="100" placeholder="Ej: Régimen Simplificado de Confianza" />
-        </div>
-        <div class="campo">
-          <label for="aj-cp">Código postal del domicilio fiscal</label>
-          <input id="aj-cp" type="text" maxlength="5" pattern="[0-9]{5}" />
-        </div>
-
-        <h3 class="subtitulo-ajustes">Plantillas de WhatsApp</h3>
-        <p class="ayuda-campo" style="margin: 0 0 12px 0; font-style: normal;">Usa <code>{cliente}</code>, <code>{negocio}</code>, <code>{componente}</code>, <code>{equipo}</code>, <code>{fecha}</code>, <code>{monto}</code>, <code>{concepto}</code> según corresponda. Si lo dejas vacío, usa el texto por defecto.</p>
-        <div class="campo">
-          <label for="aj-plantilla-vencido">Mantenimiento vencido</label>
-          <textarea id="aj-plantilla-vencido" maxlength="600" rows="3"></textarea>
-        </div>
-        <div class="campo">
-          <label for="aj-plantilla-proximo">Mantenimiento próximo</label>
-          <textarea id="aj-plantilla-proximo" maxlength="600" rows="3"></textarea>
-        </div>
-        <div class="campo">
-          <label for="aj-plantilla-aldia">Mantenimiento al día (aviso temprano)</label>
-          <textarea id="aj-plantilla-aldia" maxlength="600" rows="3"></textarea>
-        </div>
-        <div class="campo">
-          <label for="aj-plantilla-cobro">Cobro pendiente</label>
-          <textarea id="aj-plantilla-cobro" maxlength="600" rows="3"></textarea>
-        </div>
-
-        <p id="error-ajustes" class="mensaje-error" role="alert"></p>
-
-        <div class="acciones-modal">
-          <button type="button" class="boton-secundario" data-cerrar>Cerrar</button>
-          <button type="submit" id="btn-guardar-ajustes" class="boton-principal">Guardar ajustes</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
   <div id="modal-cobrar-venta" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-cobrar">
     <div class="modal-fondo" data-cerrar></div>
@@ -653,6 +655,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=17"></script>
+  <script type="module" src="js/app.js?v=18"></script>
 </body>
 </html>
