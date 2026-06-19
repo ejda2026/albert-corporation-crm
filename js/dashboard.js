@@ -193,7 +193,6 @@ function crearItemUrgente({ equipo, componente, indice, proxima, estado, cliente
   } else {
     textoEstado = `Faltan ${estado.dias} días (${formatearFechaCorta(proxima)})`;
   }
-  const mostrarWa = estado.tipo !== "al-dia";
   item.innerHTML = `
     <div class="info-componente">
       <span class="nombre-componente"></span>
@@ -202,7 +201,7 @@ function crearItemUrgente({ equipo, componente, indice, proxima, estado, cliente
     </div>
     <div class="acciones-componente">
       <button type="button" class="boton-mini principal" data-accion="marcar">Marcar realizado</button>
-      ${mostrarWa ? '<button type="button" class="boton-mini wa" data-accion="wa">WhatsApp</button>' : ""}
+      <button type="button" class="boton-mini wa" data-accion="wa">WhatsApp</button>
       <button type="button" class="boton-mini" data-accion="ver">Ver equipo</button>
     </div>
   `;
