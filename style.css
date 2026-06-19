@@ -283,6 +283,80 @@ form input:focus {
   color: var(--color-texto);
 }
 
+.grid-finanzas {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .grid-finanzas {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card-finanzas {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  padding: 16px 18px;
+  box-shadow: var(--sombra);
+}
+
+.card-finanzas.card-finanzas-grande .card-numero {
+  font-size: 28px;
+  color: var(--color-exito);
+}
+
+.card-finanzas .card-detalle {
+  flex-direction: column;
+}
+
+.lista-mini {
+  margin: 8px 0 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lista-mini li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-borde);
+  font-size: 13px;
+}
+
+.lista-mini li:last-child {
+  border-bottom: none;
+}
+
+.lista-mini .nombre {
+  color: var(--color-texto);
+  font-weight: 500;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 8px;
+}
+
+.lista-mini .valor {
+  color: var(--color-primario);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.comparativo-positivo {
+  color: var(--color-exito);
+}
+
+.comparativo-negativo {
+  color: var(--color-error);
+}
+
 .barra-acciones {
   display: flex;
   align-items: center;

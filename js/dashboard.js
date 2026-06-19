@@ -24,6 +24,8 @@ import {
   getTotalPorCobrar,
   getCantidadVencidas,
   getCantidadPendientes,
+  getIngresosDelMes,
+  getTopClientes,
   onVentasActualizadas
 } from "./ventas.js";
 import { enviarRecordatorioMantenimiento } from "./whatsapp.js";
@@ -89,6 +91,116 @@ function repintarDashboard() {
   pintarResumenMantenimientos();
   pintarResumenCobranza();
   pintarListaUrgentes();
+  pintarSaludFinanciera();
+}
+
+const TIPO_VENTA_LABELS = {
+  insumo: "Insumos",
+  servicio: "Servicios",
+  "venta-equipo": "Venta de equipos",
+  otro: "Otro"
+};
+
+function pintarSaludFinanciera() {
+  const ahora = new Date();
+  const yActual = ahora.getFullYear();
+  const mActual = ahora.getMonth() + 1;
+  const fechaAnterior = new Date(yActual, mActual - 2, 1);
+  const yPasado = fechaAnterior.getFullYear();
+  const mPasado = fechaAnterior.getMonth() + 1;
+
+  const actual = getIngresosDelMes(yActual, mActual);
+  const pasado = getIngresosDelMes(yPasado, mPasado);
+
+  document.getElementById("dash-mes-actual").textContent =
+    `(${capitalizarMes(ahora)})`;
+  document.getElementById("dash-ingresos-mes").textContent = moneda(actual.total);
+  document.getElementById("dash-ingresos-efectivo").textContent = moneda(actual.efectivo);
+  document.getElementById("dash-ingresos-transferencia").textContent = moneda(actual.transferencia);
+  document.getElementById("dash-ingresos-cantidad").textContent = actual.cantidad;
+
+  const comp = document.getElementById("dash-ingresos-comparativo");
+  if (pasado.total === 0) {
+    comp.textContent = "Sin datos del mes anterior para comparar";
+    comp.className = "card-etiqueta";
+  } else {
+    const dif = actual.total - pasado.total;
+    const pct = Math.round((dif / pasado.total) * 100);
+    const signo = pct >= 0 ? "+" : "";
+    comp.textContent = `vs ${moneda(pasado.total)} el mes anterior (${signo}${pct}%)`;
+    comp.className =
+      pct >= 0
+        ? "card-etiqueta comparativo-positivo"
+        : "card-etiqueta comparativo-negativo";
+  }
+
+  const ulTipos = document.getElementById("dash-por-tipo");
+  const tipos = Object.entries(actual.desglosePorTipo).sort(
+    (a, b) => b[1] - a[1]
+  );
+  if (tipos.length === 0) {
+    ulTipos.innerHTML =
+      '<li class="mensaje-vacio-pequeño">Sin ventas en este mes.</li>';
+  } else {
+    ulTipos.innerHTML = tipos
+      .map(
+        ([tipo, monto]) => `
+          <li>
+            <span class="nombre">${TIPO_VENTA_LABELS[tipo] || tipo}</span>
+            <span class="valor">${moneda(monto)}</span>
+          </li>
+        `
+      )
+      .join("");
+  }
+
+  const ulTop = document.getElementById("dash-top-clientes");
+  const top = getTopClientes(5);
+  if (top.length === 0) {
+    ulTop.innerHTML =
+      '<li class="mensaje-vacio-pequeño">Aún no hay ventas suficientes.</li>';
+  } else {
+    ulTop.innerHTML = top
+      .map(
+        ({ cliente, total }) => `
+          <li>
+            <span class="nombre"></span>
+            <span class="valor">${moneda(total)}</span>
+          </li>
+        `
+      )
+      .join("");
+    const nombres = ulTop.querySelectorAll(".nombre");
+    top.forEach(({ cliente }, i) => {
+      if (nombres[i]) nombres[i].textContent = cliente.nombre || "(sin nombre)";
+    });
+  }
+}
+
+function moneda(n) {
+  return Number(n || 0).toLocaleString("es-MX", {
+    style: "currency",
+    currency: "MXN",
+    minimumFractionDigits: 2
+  });
+}
+
+function capitalizarMes(d) {
+  const meses = [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre"
+  ];
+  return `${meses[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 function pintarResumenCobranza() {

@@ -87,6 +87,48 @@ export function getCantidadPendientes() {
   return n;
 }
 
+export function getIngresosDelMes(year, month) {
+  let total = 0;
+  let efectivo = 0;
+  let transferencia = 0;
+  let cantidad = 0;
+  const desglosePorTipo = {};
+  for (const v of ventasEnMemoria.values()) {
+    if (!v.fechaPago) continue;
+    const [y, m] = v.fechaPago.split("-").map(Number);
+    if (y !== year || m !== month) continue;
+    const monto = v.montoPagado || 0;
+    total += monto;
+    cantidad++;
+    if (v.metodoPago === "efectivo") efectivo += monto;
+    else if (v.metodoPago === "transferencia") transferencia += monto;
+    const tipo = v.tipo || "otro";
+    desglosePorTipo[tipo] = (desglosePorTipo[tipo] || 0) + monto;
+  }
+  return { total, efectivo, transferencia, cantidad, desglosePorTipo };
+}
+
+export function getTopClientes(limite = 5) {
+  const acumulado = new Map();
+  for (const v of ventasEnMemoria.values()) {
+    if (!v.clienteId) continue;
+    acumulado.set(
+      v.clienteId,
+      (acumulado.get(v.clienteId) || 0) + (v.monto || 0)
+    );
+  }
+  const arr = Array.from(acumulado.entries())
+    .map(([clienteId, total]) => ({
+      clienteId,
+      total,
+      cliente: clientesEnMemoria.get(clienteId)
+    }))
+    .filter((x) => x.cliente)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, limite);
+  return arr;
+}
+
 export function getCantidadVencidas(diasUmbral = 30) {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
