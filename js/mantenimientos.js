@@ -12,6 +12,7 @@ import {
   formatearFechaCorta,
   marcarMantenimientoRealizado
 } from "./componentes.js";
+import { enviarRecordatorioMantenimiento } from "./whatsapp.js";
 
 const lista = document.getElementById("lista-mantenimientos");
 const buscador = document.getElementById("buscador-mantenimientos");
@@ -134,6 +135,7 @@ function crearItem({ equipo, componente, indice, proxima, estado, cliente }) {
     textoEstado = `Faltan ${estado.dias} días (${formatearFechaCorta(proxima)})`;
   }
 
+  const mostrarWa = estado.tipo !== "al-dia";
   item.innerHTML = `
     <div class="info-componente">
       <span class="nombre-componente"></span>
@@ -142,6 +144,7 @@ function crearItem({ equipo, componente, indice, proxima, estado, cliente }) {
     </div>
     <div class="acciones-componente">
       <button type="button" class="boton-mini principal" data-accion="marcar">Marcar realizado</button>
+      ${mostrarWa ? '<button type="button" class="boton-mini wa" data-accion="wa">WhatsApp</button>' : ""}
       <button type="button" class="boton-mini" data-accion="ver">Ver equipo</button>
     </div>
   `;
@@ -164,5 +167,17 @@ function crearItem({ equipo, componente, indice, proxima, estado, cliente }) {
   item.querySelector('[data-accion="ver"]').addEventListener("click", () => {
     abrirDetalleEquipoPorId(equipo.id);
   });
+  const btnWa = item.querySelector('[data-accion="wa"]');
+  if (btnWa) {
+    btnWa.addEventListener("click", () => {
+      enviarRecordatorioMantenimiento({
+        cliente,
+        equipo,
+        componente,
+        fechaProxima: proxima,
+        estadoTipo: estado.tipo
+      });
+    });
+  }
   return item;
 }

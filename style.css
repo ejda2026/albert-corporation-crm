@@ -803,6 +803,17 @@ form input:focus {
   background: var(--color-primario-hover);
 }
 
+.boton-mini.wa {
+  background: #25d366;
+  color: white;
+  border-color: #1ebe5a;
+}
+
+.boton-mini.wa:hover {
+  background: #1ebe5a;
+  border-color: #19a64d;
+}
+
 .mensaje-vacio-pequeño {
   color: var(--color-texto-2);
   font-size: 13px;

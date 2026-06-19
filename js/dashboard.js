@@ -26,6 +26,7 @@ import {
   getCantidadPendientes,
   onVentasActualizadas
 } from "./ventas.js";
+import { enviarRecordatorioMantenimiento } from "./whatsapp.js";
 
 const elMantVencidos = document.getElementById("dash-mant-vencidos");
 const elMantProximos = document.getElementById("dash-mant-proximos");
@@ -192,6 +193,7 @@ function crearItemUrgente({ equipo, componente, indice, proxima, estado, cliente
   } else {
     textoEstado = `Faltan ${estado.dias} días (${formatearFechaCorta(proxima)})`;
   }
+  const mostrarWa = estado.tipo !== "al-dia";
   item.innerHTML = `
     <div class="info-componente">
       <span class="nombre-componente"></span>
@@ -200,6 +202,7 @@ function crearItemUrgente({ equipo, componente, indice, proxima, estado, cliente
     </div>
     <div class="acciones-componente">
       <button type="button" class="boton-mini principal" data-accion="marcar">Marcar realizado</button>
+      ${mostrarWa ? '<button type="button" class="boton-mini wa" data-accion="wa">WhatsApp</button>' : ""}
       <button type="button" class="boton-mini" data-accion="ver">Ver equipo</button>
     </div>
   `;
@@ -222,5 +225,17 @@ function crearItemUrgente({ equipo, componente, indice, proxima, estado, cliente
   item.querySelector('[data-accion="ver"]').addEventListener("click", () => {
     abrirDetalleEquipoPorId(equipo.id);
   });
+  const btnWa = item.querySelector('[data-accion="wa"]');
+  if (btnWa) {
+    btnWa.addEventListener("click", () => {
+      enviarRecordatorioMantenimiento({
+        cliente,
+        equipo,
+        componente,
+        fechaProxima: proxima,
+        estadoTipo: estado.tipo
+      });
+    });
+  }
   return item;
 }

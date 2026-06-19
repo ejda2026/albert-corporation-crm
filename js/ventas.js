@@ -11,6 +11,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { auth, db } from "./config.js";
+import { enviarRecordatorioCobro } from "./whatsapp.js";
 
 const TIPOS = {
   insumo: "Insumo",
@@ -225,6 +226,7 @@ function crearItem(venta) {
   const metaLinea = `${TIPOS[venta.tipo] || "Otro"} · ${formatearFechaCorta(venta.fecha)}${venta.metodoPago ? " · " + capitalizar(venta.metodoPago) : ""}`;
   const estadoLinea = textoEstado(venta);
 
+  const mostrarWa = venta.estadoPago !== "pagado";
   item.innerHTML = `
     <div class="info-componente">
       <span class="nombre-componente"></span>
@@ -232,6 +234,7 @@ function crearItem(venta) {
       <span class="estado-componente"></span>
     </div>
     <div class="acciones-componente">
+      ${mostrarWa ? '<button type="button" class="boton-mini wa" data-accion="wa">WhatsApp</button>' : ""}
       <button type="button" class="boton-mini" data-accion="ver">Detalle</button>
     </div>
   `;
@@ -241,6 +244,13 @@ function crearItem(venta) {
   item
     .querySelector('[data-accion="ver"]')
     .addEventListener("click", () => abrirDetalle(venta));
+  const btnWa = item.querySelector('[data-accion="wa"]');
+  if (btnWa) {
+    btnWa.addEventListener("click", (e) => {
+      e.stopPropagation();
+      enviarRecordatorioCobro({ cliente, venta });
+    });
+  }
   item.addEventListener("click", (e) => {
     if (e.target.closest("button")) return;
     abrirDetalle(venta);
