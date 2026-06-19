@@ -368,10 +368,14 @@ form input:focus {
   z-index: 100;
 }
 
+#modal-form-componente {
+  z-index: 200;
+}
+
 .modal-fondo {
   position: absolute;
   inset: 0;
-  background: rgba(15, 23, 42, 0.4);
+  background: rgba(15, 23, 42, 0.55);
 }
 
 .modal-tarjeta {
