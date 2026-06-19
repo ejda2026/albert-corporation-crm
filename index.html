@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=8" />
+  <link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
 
@@ -56,7 +56,7 @@
 
     <nav class="nav-secciones">
       <button class="nav-boton activa" data-seccion="clientes">Clientes</button>
-      <button class="nav-boton" data-seccion="equipos">Equipos</button>
+      <button class="nav-boton" data-seccion="mantenimientos">Mantenimientos</button>
     </nav>
 
     <section class="contenido">
@@ -96,32 +96,49 @@
         </div>
       </div>
 
-      <div id="seccion-equipos" class="seccion">
+      <div id="seccion-mantenimientos" class="seccion">
         <div class="barra-acciones">
-          <h2 class="titulo-seccion">Equipos <span id="contador-equipos" class="contador"></span></h2>
-          <button id="btn-nuevo-equipo" class="boton-principal compacto">
-            + Nuevo equipo
-          </button>
+          <h2 class="titulo-seccion">Mantenimientos <span id="contador-mantenimientos" class="contador"></span></h2>
         </div>
 
-        <div class="barra-filtros">
+        <div class="barra-filtros barra-filtros-4">
           <input
-            id="buscador-equipos"
+            id="buscador-mantenimientos"
             type="search"
             class="buscador"
-            placeholder="Buscar por cliente, modelo o notas..."
+            placeholder="Buscar por cliente, equipo o componente..."
             autocomplete="off"
           />
-          <select id="filtro-equipo-tipo" class="filtro-select">
-            <option value="">Todos los tipos</option>
-            <option value="planta-purificadora">Planta purificadora</option>
-            <option value="equipo-domestico">Equipo doméstico</option>
-            <option value="alberca-equipo">Equipo de alberca</option>
+          <select id="filtro-mant-estado" class="filtro-select">
+            <option value="">Todos los estados</option>
+            <option value="vencido">Vencidos</option>
+            <option value="proximo">Próximos (7 días)</option>
+            <option value="al-dia">Al día</option>
+          </select>
+          <select id="filtro-mant-ciudad" class="filtro-select">
+            <option value="">Todas las ciudades</option>
+            <option value="Navojoa">Navojoa</option>
+            <option value="Huatabampo">Huatabampo</option>
+            <option value="Etchojoa">Etchojoa</option>
+            <option value="Hermosillo">Hermosillo</option>
+            <option value="Otro">Otro</option>
+          </select>
+          <select id="filtro-mant-componente" class="filtro-select">
+            <option value="">Todos los componentes</option>
+            <option value="sal-pellets">Sal en pellets</option>
+            <option value="carbon">Filtro de carbón</option>
+            <option value="resina">Resina</option>
+            <option value="turbidex">Turbidex</option>
+            <option value="lampara-uv">Lámpara UV</option>
+            <option value="preventivo">Preventivo</option>
+            <option value="filtro-alberca">Filtro de alberca</option>
+            <option value="quimicos-alberca">Químicos de alberca</option>
+            <option value="otro">Otro</option>
           </select>
         </div>
 
-        <div id="lista-equipos" class="lista-clientes" aria-live="polite">
-          <p class="mensaje-vacio">Cargando equipos...</p>
+        <div id="lista-mantenimientos" class="lista-componentes" aria-live="polite">
+          <p class="mensaje-vacio">Cargando mantenimientos...</p>
         </div>
       </div>
     </section>
@@ -322,6 +339,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=8"></script>
+  <script type="module" src="js/app.js?v=9"></script>
 </body>
 </html>

@@ -250,6 +250,10 @@ form input:focus {
   align-items: center;
 }
 
+.barra-filtros.barra-filtros-4 {
+  grid-template-columns: 1fr auto auto auto;
+}
+
 .buscador,
 .filtro-select {
   padding: 8px 12px;

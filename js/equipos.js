@@ -29,8 +29,6 @@ const ETIQUETAS_TIPO = {
   "alberca-equipo": "Equipo de alberca"
 };
 
-const listaEquipos = document.getElementById("lista-equipos");
-const btnNuevoEquipo = document.getElementById("btn-nuevo-equipo");
 const modalForm = document.getElementById("modal-form-equipo");
 const modalDetalle = document.getElementById("modal-detalle-equipo");
 const formEquipo = document.getElementById("form-equipo");
@@ -42,9 +40,6 @@ const tituloDetalle = document.getElementById("titulo-modal-detalle-equipo");
 const btnEditar = document.getElementById("btn-editar-equipo");
 const btnEliminar = document.getElementById("btn-eliminar-equipo");
 const selectCliente = document.getElementById("equipo-cliente");
-const buscadorEquipos = document.getElementById("buscador-equipos");
-const filtroTipo = document.getElementById("filtro-equipo-tipo");
-const contadorEquipos = document.getElementById("contador-equipos");
 
 let unsubscribeEquipos = null;
 let unsubscribeClientesParaEquipos = null;
@@ -57,6 +52,14 @@ export function getEquiposDeCliente(clienteId) {
   return Array.from(equiposEnMemoria.values()).filter(
     (e) => e.clienteId === clienteId
   );
+}
+
+export function getTodosLosEquipos() {
+  return Array.from(equiposEnMemoria.values());
+}
+
+export function getClienteDelEquipo(clienteId) {
+  return clientesParaEquipos.get(clienteId) || null;
 }
 
 export function getEtiquetaTipo(tipo) {
@@ -102,7 +105,6 @@ function suscribirEquipos() {
     (snap) => {
       const equipos = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       equiposEnMemoria = new Map(equipos.map((e) => [e.id, e]));
-      repintarLista();
       notificarListeners();
       if (equipoEnDetalleId && equiposEnMemoria.has(equipoEnDetalleId)) {
         pintarDetalle(equiposEnMemoria.get(equipoEnDetalleId));
@@ -110,8 +112,6 @@ function suscribirEquipos() {
     },
     (error) => {
       console.error("Error al cargar equipos:", error);
-      listaEquipos.innerHTML =
-        '<p class="mensaje-vacio">No se pudieron cargar los equipos. Recarga la página.</p>';
     }
   );
 }
@@ -123,7 +123,6 @@ function suscribirClientesParaSelect() {
     const clientes = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     clientesParaEquipos = new Map(clientes.map((c) => [c.id, c]));
     actualizarSelectClientes(clientes);
-    repintarLista();
     notificarListeners();
   });
 }
@@ -144,92 +143,6 @@ function actualizarSelectClientes(clientes) {
   });
   if (valorActual) selectCliente.value = valorActual;
 }
-
-function repintarLista() {
-  const todos = Array.from(equiposEnMemoria.values());
-  const filtrados = aplicarFiltros(todos);
-  actualizarContador(filtrados.length, todos.length);
-
-  if (todos.length === 0) {
-    listaEquipos.innerHTML =
-      '<p class="mensaje-vacio">Aún no hay equipos. Agrega el primero con el botón de arriba.</p>';
-    return;
-  }
-  if (filtrados.length === 0) {
-    listaEquipos.innerHTML =
-      '<p class="mensaje-vacio">No se encontraron equipos con esos filtros.</p>';
-    return;
-  }
-  listaEquipos.innerHTML = "";
-  for (const equipo of filtrados) {
-    listaEquipos.appendChild(crearTarjetaEquipo(equipo));
-  }
-}
-
-function crearTarjetaEquipo(equipo) {
-  const cliente = clientesParaEquipos.get(equipo.clienteId);
-  const tarjeta = document.createElement("button");
-  tarjeta.type = "button";
-  tarjeta.className = "tarjeta-cliente";
-  tarjeta.dataset.id = equipo.id;
-  tarjeta.innerHTML = `
-    <div class="nombre-cliente"></div>
-    <div class="meta-cliente">
-      <span class="etiqueta-tipo comercial"></span>
-      <span class="modelo"></span>
-      <span class="fecha"></span>
-    </div>
-  `;
-  tarjeta.querySelector(".nombre-cliente").textContent =
-    cliente?.nombre || "(cliente eliminado)";
-  tarjeta.querySelector(".etiqueta-tipo").textContent = getEtiquetaTipo(
-    equipo.tipo
-  );
-  tarjeta.querySelector(".modelo").textContent = equipo.modelo || "";
-  tarjeta.querySelector(".fecha").textContent = equipo.fechaInstalacion
-    ? `Instalado: ${formatearFecha(equipo.fechaInstalacion)}`
-    : "";
-
-  tarjeta.addEventListener("click", () => abrirDetalle(equipo));
-  return tarjeta;
-}
-
-function aplicarFiltros(equipos) {
-  const texto = (buscadorEquipos.value || "").trim().toLowerCase();
-  const tipo = filtroTipo.value;
-  return equipos.filter((e) => {
-    if (tipo && e.tipo !== tipo) return false;
-    if (texto) {
-      const cliente = clientesParaEquipos.get(e.clienteId);
-      const blob = [
-        cliente?.nombre || "",
-        e.modelo || "",
-        e.notas || "",
-        getEtiquetaTipo(e.tipo)
-      ]
-        .join(" ")
-        .toLowerCase();
-      if (!blob.includes(texto)) return false;
-    }
-    return true;
-  });
-}
-
-function actualizarContador(mostrados, total) {
-  if (total === 0) {
-    contadorEquipos.textContent = "";
-    return;
-  }
-  contadorEquipos.textContent =
-    mostrados === total ? `(${total})` : `(${mostrados} de ${total})`;
-}
-
-for (const el of [buscadorEquipos, filtroTipo]) {
-  el.addEventListener("input", repintarLista);
-  el.addEventListener("change", repintarLista);
-}
-
-btnNuevoEquipo.addEventListener("click", () => abrirFormulario("nuevo"));
 
 btnEditar.addEventListener("click", () => {
   if (!equipoEnDetalleId) return;

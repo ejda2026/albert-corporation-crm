@@ -4,3 +4,4 @@ import "./navegacion.js";
 import "./componentes.js";
 import "./clientes.js";
 import "./equipos.js";
+import "./mantenimientos.js";
