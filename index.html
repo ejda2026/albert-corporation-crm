@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=18" />
+  <link rel="stylesheet" href="style.css?v=19" />
 </head>
 <body>
 
@@ -547,6 +547,31 @@
   </div>
 
 
+  <div id="modal-nueva-nota" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-nota">
+    <div class="modal-fondo" data-cerrar></div>
+    <div class="modal-tarjeta">
+      <header class="modal-cabecera">
+        <h2 id="titulo-modal-nota">Nueva nota</h2>
+        <button class="modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+      </header>
+
+      <form id="form-nota" class="form-cliente">
+        <p id="nota-cliente-info" class="ayuda-campo" style="margin: 0 0 12px 0; font-style: normal;"></p>
+        <div class="campo">
+          <label for="nota-texto">Texto de la nota *</label>
+          <textarea id="nota-texto" required maxlength="1000" rows="5" placeholder="Ej: Llamó pidiendo cotización para una planta de 5000 L..."></textarea>
+        </div>
+
+        <p id="error-form-nota" class="mensaje-error" role="alert"></p>
+
+        <div class="acciones-modal">
+          <button type="button" class="boton-secundario" data-cerrar>Cancelar</button>
+          <button type="submit" id="btn-guardar-nota" class="boton-principal">Guardar nota</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="modal-cobrar-venta" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-cobrar">
     <div class="modal-fondo" data-cerrar></div>
     <div class="modal-tarjeta">
@@ -655,6 +680,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=18"></script>
+  <script type="module" src="js/app.js?v=19"></script>
 </body>
 </html>

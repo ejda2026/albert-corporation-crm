@@ -437,8 +437,45 @@ form input:focus {
 }
 
 #modal-form-componente,
-#modal-cobrar-venta {
+#modal-cobrar-venta,
+#modal-nueva-nota {
   z-index: 200;
+}
+
+.lista-notas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nota-item {
+  background: #fffce8;
+  border: 1px solid #f0e6a0;
+  border-left: 3px solid #d4af37;
+  border-radius: var(--radio);
+  padding: 10px 12px;
+}
+
+.nota-cabecera {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--color-texto-2);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.nota-autor {
+  font-weight: 600;
+  color: var(--color-texto);
+}
+
+.nota-texto {
+  font-size: 13px;
+  color: var(--color-texto);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .modal-fondo {

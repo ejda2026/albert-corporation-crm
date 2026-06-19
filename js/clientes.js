@@ -19,6 +19,7 @@ import {
   abrirNuevoEquipoParaCliente,
   abrirDetalleEquipoPorId
 } from "./equipos.js";
+import { abrirModalNuevaNota, pintarHistorialNotas } from "./notas.js";
 
 const listaClientes = document.getElementById("lista-clientes");
 const btnNuevoCliente = document.getElementById("btn-nuevo-cliente");
@@ -347,6 +348,13 @@ function pintarDetalle(cliente) {
         </div>
         <div id="equipos-del-cliente" class="lista-equipos-cliente"></div>
       </div>
+      <div class="subseccion-detalle">
+        <div class="barra-acciones" style="margin-bottom: 8px;">
+          <p class="subtitulo-detalle" style="margin:0;">Historial / Notas</p>
+          <button id="btn-nueva-nota-cliente" class="boton-secundario" style="padding:4px 10px; font-size:12px;">+ Nueva nota</button>
+        </div>
+        <div id="notas-del-cliente" class="lista-notas"></div>
+      </div>
     `;
   const valores = contenidoDetalle.querySelectorAll(".fila .valor");
   filas.forEach(([, valor], i) => {
@@ -354,6 +362,7 @@ function pintarDetalle(cliente) {
   });
 
   pintarEquiposDelCliente(cliente.id);
+  pintarNotasDelCliente(cliente);
 
   const btnAgregar = document.getElementById("btn-nuevo-equipo-cliente");
   if (btnAgregar) {
@@ -362,6 +371,18 @@ function pintarDetalle(cliente) {
       abrirNuevoEquipoParaCliente(cliente.id);
     });
   }
+  const btnNota = document.getElementById("btn-nueva-nota-cliente");
+  if (btnNota) {
+    btnNota.addEventListener("click", () => {
+      abrirModalNuevaNota(cliente);
+    });
+  }
+}
+
+function pintarNotasDelCliente(cliente) {
+  const contenedor = document.getElementById("notas-del-cliente");
+  if (!contenedor) return;
+  pintarHistorialNotas(contenedor, cliente);
 }
 
 function pintarEquiposDelCliente(clienteId) {
