@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=9" />
+  <link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body>
 
@@ -55,12 +55,60 @@
     </header>
 
     <nav class="nav-secciones">
-      <button class="nav-boton activa" data-seccion="clientes">Clientes</button>
+      <button class="nav-boton activa" data-seccion="dashboard">Inicio</button>
+      <button class="nav-boton" data-seccion="clientes">Clientes</button>
       <button class="nav-boton" data-seccion="mantenimientos">Mantenimientos</button>
     </nav>
 
     <section class="contenido">
-      <div id="seccion-clientes" class="seccion activa">
+      <div id="seccion-dashboard" class="seccion activa">
+        <div class="barra-acciones">
+          <h2 class="titulo-seccion">Resumen del negocio</h2>
+        </div>
+
+        <div class="grid-cards">
+          <div class="card-dashboard">
+            <div class="card-cabecera">Mantenimientos</div>
+            <div class="card-numero card-numero-rojo" id="dash-mant-vencidos">0</div>
+            <div class="card-etiqueta">Vencidos</div>
+            <div class="card-detalle">
+              <span><span id="dash-mant-proximos">0</span> próximos (7 días)</span>
+              <span><span id="dash-mant-mes">0</span> este mes</span>
+            </div>
+          </div>
+
+          <div class="card-dashboard">
+            <div class="card-cabecera">Clientes</div>
+            <div class="card-numero" id="dash-clientes-total">0</div>
+            <div class="card-etiqueta">Activos</div>
+            <div class="card-detalle">
+              <span><span id="dash-clientes-residenciales">0</span> residenciales</span>
+              <span><span id="dash-clientes-comerciales">0</span> comerciales</span>
+            </div>
+          </div>
+
+          <div class="card-dashboard">
+            <div class="card-cabecera">Equipos instalados</div>
+            <div class="card-numero" id="dash-equipos-total">0</div>
+            <div class="card-etiqueta">Total</div>
+            <div class="card-detalle">
+              <span><span id="dash-equipos-plantas">0</span> plantas</span>
+              <span><span id="dash-equipos-domesticos">0</span> domésticos</span>
+              <span><span id="dash-equipos-albercas">0</span> albercas</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="barra-acciones" style="margin-top: 24px;">
+          <h3 class="subtitulo-seccion">Más urgentes</h3>
+          <button id="dash-ver-todos" class="boton-secundario" style="padding:6px 12px; font-size:13px;">Ver todos</button>
+        </div>
+        <div id="dash-lista-urgentes" class="lista-componentes" aria-live="polite">
+          <p class="mensaje-vacio">Cargando...</p>
+        </div>
+      </div>
+
+      <div id="seccion-clientes" class="seccion">
         <div class="barra-acciones">
           <h2 class="titulo-seccion">Clientes <span id="contador-clientes" class="contador"></span></h2>
           <button id="btn-nuevo-cliente" class="boton-principal compacto">
@@ -339,6 +387,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=9"></script>
+  <script type="module" src="js/app.js?v=10"></script>
 </body>
 </html>

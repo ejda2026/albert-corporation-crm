@@ -219,6 +219,70 @@ form input:focus {
   display: block;
 }
 
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.card-dashboard {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  padding: 18px;
+  box-shadow: var(--sombra);
+}
+
+.card-cabecera {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-texto-2);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 10px;
+}
+
+.card-numero {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--color-texto);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.card-numero-rojo {
+  color: var(--color-error);
+}
+
+.card-etiqueta {
+  font-size: 12px;
+  color: var(--color-texto-2);
+  margin-bottom: 12px;
+}
+
+.card-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-borde);
+  font-size: 13px;
+  color: var(--color-texto-2);
+}
+
+.card-detalle span span {
+  font-weight: 600;
+  color: var(--color-texto);
+}
+
+.subtitulo-seccion {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-texto);
+}
+
 .barra-acciones {
   display: flex;
   align-items: center;
