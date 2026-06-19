@@ -21,6 +21,8 @@ import {
   marcarMantenimientoRealizado
 } from "./componentes.js";
 
+const elSaludo = document.getElementById("dash-saludo");
+const elMensaje = document.getElementById("dash-mensaje");
 const elMantVencidos = document.getElementById("dash-mant-vencidos");
 const elMantProximos = document.getElementById("dash-mant-proximos");
 const elMantMes = document.getElementById("dash-mant-mes");
@@ -71,10 +73,46 @@ btnVerTodos.addEventListener("click", () => {
 repintarDashboard();
 
 function repintarDashboard() {
+  pintarSaludo();
   pintarResumenClientes();
   pintarResumenEquipos();
   pintarResumenMantenimientos();
   pintarListaUrgentes();
+}
+
+function pintarSaludo() {
+  const hora = new Date().getHours();
+  let saludo;
+  if (hora < 12) saludo = "Buenos días";
+  else if (hora < 19) saludo = "Buenas tardes";
+  else saludo = "Buenas noches";
+  const nombreUsuario =
+    document.getElementById("usuario-nombre")?.textContent?.trim() || "";
+  const primerNombre = nombreUsuario.split(" ")[0] || "";
+  elSaludo.textContent = primerNombre
+    ? `${saludo}, ${primerNombre}`
+    : saludo;
+
+  const items = construirItems();
+  const vencidos = items.filter((i) => i.estado.tipo === "vencido").length;
+  const proximos = items.filter((i) => i.estado.tipo === "proximo").length;
+  let mensaje;
+  if (items.length === 0) {
+    mensaje = "Empieza a registrar equipos y componentes para ver tus mantenimientos aquí.";
+  } else if (vencidos > 0) {
+    mensaje =
+      vencidos === 1
+        ? "Tienes 1 mantenimiento vencido. Atiéndelo cuanto antes."
+        : `Tienes ${vencidos} mantenimientos vencidos. Atiéndelos cuanto antes.`;
+  } else if (proximos > 0) {
+    mensaje =
+      proximos === 1
+        ? "Tienes 1 mantenimiento esta semana."
+        : `Tienes ${proximos} mantenimientos esta semana.`;
+  } else {
+    mensaje = "Vas al corriente. No hay nada urgente.";
+  }
+  elMensaje.textContent = mensaje;
 }
 
 function pintarResumenClientes() {

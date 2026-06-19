@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=10" />
+  <link rel="stylesheet" href="style.css?v=11" />
 </head>
 <body>
 
@@ -62,49 +62,54 @@
 
     <section class="contenido">
       <div id="seccion-dashboard" class="seccion activa">
-        <div class="barra-acciones">
-          <h2 class="titulo-seccion">Resumen del negocio</h2>
-        </div>
-
-        <div class="grid-cards">
-          <div class="card-dashboard">
-            <div class="card-cabecera">Mantenimientos</div>
-            <div class="card-numero card-numero-rojo" id="dash-mant-vencidos">0</div>
-            <div class="card-etiqueta">Vencidos</div>
-            <div class="card-detalle">
-              <span><span id="dash-mant-proximos">0</span> próximos (7 días)</span>
-              <span><span id="dash-mant-mes">0</span> este mes</span>
-            </div>
+        <div class="dashboard-hero">
+          <div class="saludo-bloque">
+            <p id="dash-saludo" class="saludo">Hola</p>
+            <h2 id="dash-mensaje" class="mensaje-principal">Esto es lo que tienes pendiente hoy.</h2>
           </div>
 
-          <div class="card-dashboard">
-            <div class="card-cabecera">Clientes</div>
-            <div class="card-numero" id="dash-clientes-total">0</div>
-            <div class="card-etiqueta">Activos</div>
-            <div class="card-detalle">
-              <span><span id="dash-clientes-residenciales">0</span> residenciales</span>
-              <span><span id="dash-clientes-comerciales">0</span> comerciales</span>
+          <div class="chips-resumen">
+            <div class="chip-resumen chip-vencidos">
+              <span class="chip-numero" id="dash-mant-vencidos">0</span>
+              <span class="chip-etiqueta">vencidos</span>
             </div>
-          </div>
-
-          <div class="card-dashboard">
-            <div class="card-cabecera">Equipos instalados</div>
-            <div class="card-numero" id="dash-equipos-total">0</div>
-            <div class="card-etiqueta">Total</div>
-            <div class="card-detalle">
-              <span><span id="dash-equipos-plantas">0</span> plantas</span>
-              <span><span id="dash-equipos-domesticos">0</span> domésticos</span>
-              <span><span id="dash-equipos-albercas">0</span> albercas</span>
+            <div class="chip-resumen chip-proximos">
+              <span class="chip-numero" id="dash-mant-proximos">0</span>
+              <span class="chip-etiqueta">próximos (7 días)</span>
+            </div>
+            <div class="chip-resumen chip-mes">
+              <span class="chip-numero" id="dash-mant-mes">0</span>
+              <span class="chip-etiqueta">este mes</span>
             </div>
           </div>
         </div>
 
-        <div class="barra-acciones" style="margin-top: 24px;">
-          <h3 class="subtitulo-seccion">Más urgentes</h3>
+        <div class="barra-acciones" style="margin-top: 26px; margin-bottom: 12px;">
+          <h3 class="subtitulo-seccion">Por hacer</h3>
           <button id="dash-ver-todos" class="boton-secundario" style="padding:6px 12px; font-size:13px;">Ver todos</button>
         </div>
         <div id="dash-lista-urgentes" class="lista-componentes" aria-live="polite">
           <p class="mensaje-vacio">Cargando...</p>
+        </div>
+
+        <div class="dashboard-footer">
+          <div class="footer-tile">
+            <span class="footer-numero" id="dash-clientes-total">0</span>
+            <span class="footer-etiqueta">Clientes</span>
+            <span class="footer-sub">
+              <span id="dash-clientes-residenciales">0</span> residenciales ·
+              <span id="dash-clientes-comerciales">0</span> comerciales
+            </span>
+          </div>
+          <div class="footer-tile">
+            <span class="footer-numero" id="dash-equipos-total">0</span>
+            <span class="footer-etiqueta">Equipos instalados</span>
+            <span class="footer-sub">
+              <span id="dash-equipos-plantas">0</span> plantas ·
+              <span id="dash-equipos-domesticos">0</span> domésticos ·
+              <span id="dash-equipos-albercas">0</span> albercas
+            </span>
+          </div>
         </div>
       </div>
 
@@ -387,6 +392,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=10"></script>
+  <script type="module" src="js/app.js?v=11"></script>
 </body>
 </html>
