@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=20" />
+  <link rel="stylesheet" href="style.css?v=21" />
 </head>
 <body>
 
@@ -59,6 +59,7 @@
       <button class="nav-boton activa" data-seccion="dashboard">Inicio</button>
       <button class="nav-boton" data-seccion="clientes">Clientes</button>
       <button class="nav-boton" data-seccion="mantenimientos">Mantenimientos</button>
+      <button class="nav-boton" data-seccion="cotizaciones">Cotizaciones</button>
       <button class="nav-boton" data-seccion="ventas">Ventas</button>
     </nav>
 
@@ -183,6 +184,37 @@
 
         <div id="lista-clientes" class="lista-clientes" aria-live="polite">
           <p class="mensaje-vacio">Cargando clientes...</p>
+        </div>
+      </div>
+
+      <div id="seccion-cotizaciones" class="seccion">
+        <div class="barra-acciones">
+          <h2 class="titulo-seccion">Cotizaciones <span id="contador-cotizaciones" class="contador"></span></h2>
+          <button id="btn-nueva-cotizacion" class="boton-principal compacto">
+            + Nueva cotización
+          </button>
+        </div>
+
+        <div class="barra-filtros">
+          <input
+            id="buscador-cotizaciones"
+            type="search"
+            class="buscador"
+            placeholder="Buscar por cliente, folio o concepto..."
+            autocomplete="off"
+          />
+          <select id="filtro-cot-estado" class="filtro-select">
+            <option value="">Todos los estados</option>
+            <option value="borrador">Borrador</option>
+            <option value="enviada">Enviada</option>
+            <option value="aprobada">Aprobada</option>
+            <option value="rechazada">Rechazada</option>
+            <option value="expirada">Expirada</option>
+          </select>
+        </div>
+
+        <div id="lista-cotizaciones" class="lista-componentes" aria-live="polite">
+          <p class="mensaje-vacio">Cargando cotizaciones...</p>
         </div>
       </div>
 
@@ -577,6 +609,88 @@
   </div>
 
 
+  <div id="modal-form-cotizacion" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-form-cotizacion">
+    <div class="modal-fondo" data-cerrar></div>
+    <div class="modal-tarjeta modal-ancho">
+      <header class="modal-cabecera">
+        <h2 id="titulo-modal-form-cotizacion">Nueva cotización</h2>
+        <button class="modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+      </header>
+
+      <form id="form-cotizacion" class="form-cliente" data-modo="nuevo">
+        <div class="campo">
+          <label for="cot-cliente">Cliente *</label>
+          <select id="cot-cliente" name="clienteId" required>
+            <option value="">Selecciona un cliente...</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="cot-titulo">Título / asunto</label>
+          <input id="cot-titulo" type="text" maxlength="120" placeholder="Ej: Planta purificadora 5,000 L con instalación" />
+        </div>
+
+        <label class="subtitulo-form">Conceptos</label>
+        <div id="lista-items-cot" class="lista-items-cot"></div>
+        <button type="button" id="btn-agregar-item-cot" class="boton-secundario" style="padding:6px 12px; font-size:13px; margin-top:4px;">+ Agregar concepto</button>
+
+        <div class="campo" style="margin-top: 16px;">
+          <label class="opcion-radio" style="cursor:pointer;">
+            <input type="checkbox" id="cot-incluye-iva" checked />
+            <span>Incluir IVA (16%)</span>
+          </label>
+        </div>
+
+        <div class="totales-cot">
+          <div><span>Subtotal:</span> <span id="cot-subtotal">$0.00</span></div>
+          <div id="cot-fila-iva"><span>IVA (16%):</span> <span id="cot-iva">$0.00</span></div>
+          <div class="totales-cot-total"><span>Total:</span> <span id="cot-total">$0.00</span></div>
+        </div>
+
+        <div class="campo" style="margin-top: 14px;">
+          <label for="cot-vigencia">Vigencia (días)</label>
+          <input id="cot-vigencia" type="number" min="1" max="365" value="15" />
+        </div>
+
+        <div class="campo">
+          <label for="cot-notas">Notas / condiciones (opcional)</label>
+          <textarea id="cot-notas" maxlength="500" rows="2" placeholder="Ej: Precios sujetos a cambio. Instalación incluida. 50% anticipo, 50% al entregar."></textarea>
+        </div>
+
+        <p id="error-form-cotizacion" class="mensaje-error" role="alert"></p>
+
+        <div class="acciones-modal">
+          <button type="button" class="boton-secundario" data-cerrar>Cancelar</button>
+          <button type="submit" id="btn-guardar-cotizacion" class="boton-principal">Guardar cotización</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-detalle-cotizacion" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-detalle-cotizacion">
+    <div class="modal-fondo" data-cerrar></div>
+    <div class="modal-tarjeta modal-ancho">
+      <header class="modal-cabecera">
+        <h2 id="titulo-modal-detalle-cotizacion">Detalle de cotización</h2>
+        <button class="modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+      </header>
+
+      <div id="contenido-detalle-cotizacion" class="detalle-cliente"></div>
+
+      <div class="acciones-modal acciones-detalle">
+        <button type="button" id="btn-eliminar-cotizacion" class="boton-peligro">Eliminar</button>
+        <button type="button" id="btn-editar-cotizacion" class="boton-secundario">Editar</button>
+        <button type="button" id="btn-imprimir-cotizacion" class="boton-secundario">Imprimir / PDF</button>
+        <button type="button" id="btn-wa-cotizacion" class="boton-mini wa" style="padding:7px 14px; font-size:13px;">WhatsApp</button>
+        <button type="button" id="btn-marcar-enviada" class="boton-secundario">Marcar enviada</button>
+        <button type="button" id="btn-marcar-aprobada" class="boton-principal">Aprobar y crear venta</button>
+        <button type="button" id="btn-marcar-rechazada" class="boton-secundario">Marcar rechazada</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="contenedor-impresion" class="contenedor-impresion"></div>
+
   <div id="modal-nueva-nota" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-nota">
     <div class="modal-fondo" data-cerrar></div>
     <div class="modal-tarjeta">
@@ -710,6 +824,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=20"></script>
+  <script type="module" src="js/app.js?v=21"></script>
 </body>
 </html>
