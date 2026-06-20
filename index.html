@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=21" />
+  <link rel="stylesheet" href="style.css?v=22" />
 </head>
 <body>
 
@@ -766,23 +766,39 @@
 
       <form id="form-componente" class="form-cliente">
         <div class="campo">
-          <label for="comp-tipo">Componente *</label>
+          <label for="comp-tipo">Componente / servicio *</label>
           <select id="comp-tipo" name="tipo" required>
-            <option value="sal-pellets">Sal en pellets (suavizador)</option>
-            <option value="carbon">Filtro de carbón</option>
-            <option value="resina">Resina</option>
-            <option value="turbidex">Turbidex</option>
-            <option value="lampara-uv">Lámpara UV</option>
-            <option value="preventivo">Mantenimiento preventivo general</option>
-            <option value="filtro-alberca">Filtro de alberca</option>
-            <option value="quimicos-alberca">Químicos de alberca</option>
+            <optgroup label="Purificadoras">
+              <option value="sal-pellets">Sal en pellets (suavizador)</option>
+              <option value="carbon">Filtro de carbón</option>
+              <option value="resina">Resina</option>
+              <option value="turbidex">Turbidex</option>
+              <option value="lampara-uv">Lámpara UV</option>
+              <option value="preventivo">Mantenimiento preventivo general</option>
+            </optgroup>
+            <optgroup label="Albercas">
+              <option value="aspirado-alberca">Aspirado de alberca</option>
+              <option value="nivelacion-quimicos">Nivelación de químicos</option>
+              <option value="lavado-filtro-arena">Lavado del filtro de arena</option>
+              <option value="servicio-filtro-arena">Servicio al filtro de arena</option>
+              <option value="mantenimiento-equipo-alberca">Mantenimiento de equipo (alberca)</option>
+              <option value="quimicos-alberca">Recarga de químicos (cloro, pH)</option>
+            </optgroup>
             <option value="otro">Otro</option>
           </select>
         </div>
 
         <div class="campo">
-          <label for="comp-frecuencia">Frecuencia (cada cuántos meses) *</label>
-          <input id="comp-frecuencia" name="frecuenciaMeses" type="number" min="1" max="60" required />
+          <label for="comp-frecuencia">Frecuencia (cada cuánto avisar) *</label>
+          <div class="campo-frecuencia">
+            <input id="comp-frecuencia" name="frecuenciaValor" type="number" min="1" max="365" required placeholder="Ej. 2" />
+            <select id="comp-unidad" name="frecuenciaUnidad" required>
+              <option value="dias">Días</option>
+              <option value="semanas">Semanas</option>
+              <option value="meses" selected>Meses</option>
+            </select>
+          </div>
+          <p class="ayuda-campo">Define según el cliente y el equipo. No hay un valor genérico, depende de cada caso.</p>
         </div>
 
         <div class="campo">
@@ -824,6 +840,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=21"></script>
+  <script type="module" src="js/app.js?v=22"></script>
 </body>
 </html>

@@ -1136,6 +1136,12 @@ code {
   font-style: italic;
 }
 
+.campo-frecuencia {
+  display: grid;
+  grid-template-columns: 1fr 130px;
+  gap: 8px;
+}
+
 .lista-componentes {
   display: flex;
   flex-direction: column;

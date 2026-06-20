@@ -20,7 +20,8 @@ import {
   marcarMantenimientoRealizado,
   calcularProximoMantenimiento,
   estadoDeMantenimiento,
-  formatearFechaCorta
+  formatearFechaCorta,
+  describirFrecuencia
 } from "./componentes.js";
 
 const ETIQUETAS_TIPO = {
@@ -399,7 +400,7 @@ function pintarComponentes(equipo) {
       ? `Último: ${formatearFechaCorta(comp.ultimoMantenimiento)}`
       : "Sin mantenimiento previo";
     item.querySelector(".meta-componente").textContent =
-      `${ultimo} — Cada ${comp.frecuenciaMeses} mes${comp.frecuenciaMeses === 1 ? "" : "es"} — Próximo: ${formatearFechaCorta(proxima)}`;
+      `${ultimo} — ${describirFrecuencia(comp)} — Próximo: ${formatearFechaCorta(proxima)}`;
     item.querySelector(".estado-componente").textContent = textoEstado;
 
     item
