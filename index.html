@@ -8,7 +8,9 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=24" />
+  <link rel="stylesheet" href="style.css?v=25" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
 </head>
 <body>
 
@@ -154,9 +156,15 @@
       <div id="seccion-clientes" class="seccion">
         <div class="barra-acciones">
           <h2 class="titulo-seccion">Clientes <span id="contador-clientes" class="contador"></span></h2>
-          <button id="btn-nuevo-cliente" class="boton-principal compacto">
-            + Nuevo cliente
-          </button>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <div class="toggle-vista">
+              <button type="button" class="toggle-btn activa" data-vista="lista">Lista</button>
+              <button type="button" class="toggle-btn" data-vista="mapa">Mapa</button>
+            </div>
+            <button id="btn-nuevo-cliente" class="boton-principal compacto">
+              + Nuevo cliente
+            </button>
+          </div>
         </div>
 
         <div class="barra-filtros">
@@ -184,6 +192,11 @@
 
         <div id="lista-clientes" class="lista-clientes" aria-live="polite">
           <p class="mensaje-vacio">Cargando clientes...</p>
+        </div>
+
+        <div id="mapa-clientes-contenedor" class="mapa-clientes-contenedor oculto">
+          <div id="mapa-clientes" class="mapa-clientes"></div>
+          <p class="ayuda-campo" style="margin: 10px 0 0 0; font-style: normal;">Los marcadores se posicionan en el centro de cada ciudad. Haz click en uno para ver los clientes de esa zona.</p>
         </div>
       </div>
 
@@ -840,6 +853,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=24"></script>
+  <script type="module" src="js/app.js?v=25"></script>
 </body>
 </html>

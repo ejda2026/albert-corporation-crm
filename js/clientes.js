@@ -421,3 +421,10 @@ function pintarEquiposDelCliente(clienteId) {
 onEquiposActualizados(() => {
   if (clienteEnDetalleId) pintarEquiposDelCliente(clienteEnDetalleId);
 });
+
+window.addEventListener("abrir-cliente-desde-mapa", (e) => {
+  const id = e.detail?.id;
+  if (!id) return;
+  const cliente = clientesEnMemoria.get(id);
+  if (cliente) abrirDetalle(cliente);
+});

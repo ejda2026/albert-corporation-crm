@@ -8,5 +8,6 @@ import "./equipos.js";
 import "./mantenimientos.js";
 import "./ventas.js";
 import "./cotizaciones.js";
+import "./mapa.js";
 import "./configuracion.js";
 import "./dashboard.js";
