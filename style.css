@@ -523,36 +523,12 @@ form input:focus {
 .cot-print-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 
-.cot-print-marca {
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
-}
-
-.cot-print-marca-nombre {
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: #1a1d21;
-}
-
-.cot-print-marca-sub {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: #1a1d21;
-  margin-top: 2px;
-}
-
-.cot-print-marca-tagline {
-  font-size: 8px;
-  font-weight: 600;
-  letter-spacing: 1.2px;
-  color: #1a1d21;
-  margin-top: 6px;
+.cot-print-logo-img {
+  width: 260px;
+  height: auto;
+  display: block;
 }
 
 .cot-print-titulo {

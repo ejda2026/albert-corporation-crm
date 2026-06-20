@@ -564,27 +564,7 @@ function ajustarBotonesEstado(estado) {
   btnRechazada.style.display = ["borrador","enviada","expirada"].includes(estado) ? "" : "none";
 }
 
-const LOGO_SVG = `
-  <svg viewBox="0 0 110 110" width="68" height="68" aria-hidden="true">
-    <defs>
-      <linearGradient id="hojaA" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#bcd23a"/>
-        <stop offset="100%" stop-color="#d3d800"/>
-      </linearGradient>
-      <linearGradient id="hojaB" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#5fb24a"/>
-        <stop offset="100%" stop-color="#7cc24f"/>
-      </linearGradient>
-      <linearGradient id="hojaC" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#0c8c5b"/>
-        <stop offset="100%" stop-color="#15a874"/>
-      </linearGradient>
-    </defs>
-    <path d="M55,8 C82,8 102,30 102,55 C102,57 101,59 100,61 C82,55 65,52 55,52 C55,40 55,22 55,8 Z" fill="url(#hojaA)"/>
-    <path d="M100,61 C97,84 78,102 55,102 C53,102 51,101 50,100 C56,82 59,65 59,55 C71,55 88,57 100,61 Z" fill="url(#hojaB)"/>
-    <path d="M50,100 C28,97 8,78 8,55 C8,53 9,51 10,49 C28,55 45,58 55,58 C55,70 55,86 50,100 Z" fill="url(#hojaC)"/>
-  </svg>
-`;
+const LOGO_HTML = `<img src="assets/logo-albert.png?v=24" alt="Albert Corporations" class="cot-print-logo-img" />`;
 
 function prepararImpresion(c) {
   const cliente = clientesEnMemoria.get(c.clienteId);
@@ -616,12 +596,7 @@ function prepararImpresion(c) {
     <div class="cot-print">
       <header class="cot-print-header">
         <div class="cot-print-logo">
-          ${LOGO_SVG}
-          <div class="cot-print-marca">
-            <div class="cot-print-marca-nombre">ALBERT</div>
-            <div class="cot-print-marca-sub">CORPORATIONS</div>
-            <div class="cot-print-marca-tagline">WATER &nbsp; CHEMICAL &nbsp; SOLAR</div>
-          </div>
+          ${LOGO_HTML}
         </div>
         <div class="cot-print-titulo">
           <h1>C O T I Z A C I Ó N</h1>
