@@ -9,5 +9,6 @@ import "./mantenimientos.js";
 import "./ventas.js";
 import "./cotizaciones.js";
 import "./mapa.js";
+import "./catalogo.js";
 import "./configuracion.js";
 import "./dashboard.js";
