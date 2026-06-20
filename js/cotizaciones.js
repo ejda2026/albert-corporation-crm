@@ -342,13 +342,83 @@ async function generarFolio() {
   const anio = new Date().getFullYear();
   let max = 0;
   for (const c of cotizacionesEnMemoria.values()) {
+    if (c.folio && c.folio.startsWith(`AC-${anio}-`)) {
+      const n = parseInt(c.folio.split("-")[2], 10);
+      if (!isNaN(n) && n > max) max = n;
+    }
     if (c.folio && c.folio.startsWith(`COT-${anio}-`)) {
       const n = parseInt(c.folio.split("-")[2], 10);
       if (!isNaN(n) && n > max) max = n;
     }
   }
   const siguiente = String(max + 1).padStart(4, "0");
-  return `COT-${anio}-${siguiente}`;
+  return `AC-${anio}-${siguiente}`;
+}
+
+const MESES_CORTOS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+function formatearFechaLarga(iso) {
+  if (!iso) return "—";
+  const [y, m, d] = iso.split("-");
+  return `${parseInt(d, 10)} / ${MESES_CORTOS[parseInt(m, 10) - 1]} / ${y}`;
+}
+
+function numeroALetras(num) {
+  const entero = Math.floor(num);
+  const cent = Math.round((num - entero) * 100);
+  const letras = enteroALetras(entero);
+  const centStr = String(cent).padStart(2, "0");
+  return `${capitalizar(letras)} pesos ${centStr}/100 M.N.`;
+}
+
+function capitalizar(s) {
+  if (!s) return s;
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function enteroALetras(n) {
+  if (n === 0) return "cero";
+  if (n < 0) return "menos " + enteroALetras(-n);
+  if (n >= 1000000) {
+    const m = Math.floor(n / 1000000);
+    const r = n % 1000000;
+    const mLetras = m === 1 ? "un millón" : `${enteroALetras(m)} millones`;
+    return r === 0 ? mLetras : `${mLetras} ${enteroALetras(r)}`;
+  }
+  if (n >= 1000) {
+    const m = Math.floor(n / 1000);
+    const r = n % 1000;
+    const mLetras = m === 1 ? "mil" : `${enteroALetras(m)} mil`;
+    return r === 0 ? mLetras : `${mLetras} ${enteroALetras(r)}`;
+  }
+  return centenasALetras(n);
+}
+
+function centenasALetras(n) {
+  const unidades = ["", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve"];
+  const especiales = {
+    10: "diez", 11: "once", 12: "doce", 13: "trece", 14: "catorce", 15: "quince",
+    16: "dieciséis", 17: "diecisiete", 18: "dieciocho", 19: "diecinueve",
+    20: "veinte", 30: "treinta", 40: "cuarenta", 50: "cincuenta",
+    60: "sesenta", 70: "setenta", 80: "ochenta", 90: "noventa",
+    100: "cien"
+  };
+  const centenas = {
+    100: "ciento", 200: "doscientos", 300: "trescientos", 400: "cuatrocientos",
+    500: "quinientos", 600: "seiscientos", 700: "setecientos",
+    800: "ochocientos", 900: "novecientos"
+  };
+  if (n < 10) return unidades[n];
+  if (especiales[n]) return especiales[n];
+  if (n < 30) return "veinti" + unidades[n - 20];
+  if (n < 100) {
+    const d = Math.floor(n / 10) * 10;
+    const u = n % 10;
+    return u === 0 ? especiales[d] : `${especiales[d]} y ${unidades[u]}`;
+  }
+  if (n === 100) return "cien";
+  const c = Math.floor(n / 100) * 100;
+  const r = n % 100;
+  return r === 0 ? centenas[c] : `${centenas[c]} ${centenasALetras(r)}`;
 }
 
 btnEditar.addEventListener("click", () => {
@@ -494,70 +564,123 @@ function ajustarBotonesEstado(estado) {
   btnRechazada.style.display = ["borrador","enviada","expirada"].includes(estado) ? "" : "none";
 }
 
+const LOGO_SVG = `
+  <svg viewBox="0 0 110 110" width="68" height="68" aria-hidden="true">
+    <defs>
+      <linearGradient id="hojaA" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#bcd23a"/>
+        <stop offset="100%" stop-color="#d3d800"/>
+      </linearGradient>
+      <linearGradient id="hojaB" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#5fb24a"/>
+        <stop offset="100%" stop-color="#7cc24f"/>
+      </linearGradient>
+      <linearGradient id="hojaC" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#0c8c5b"/>
+        <stop offset="100%" stop-color="#15a874"/>
+      </linearGradient>
+    </defs>
+    <path d="M55,8 C82,8 102,30 102,55 C102,57 101,59 100,61 C82,55 65,52 55,52 C55,40 55,22 55,8 Z" fill="url(#hojaA)"/>
+    <path d="M100,61 C97,84 78,102 55,102 C53,102 51,101 50,100 C56,82 59,65 59,55 C71,55 88,57 100,61 Z" fill="url(#hojaB)"/>
+    <path d="M50,100 C28,97 8,78 8,55 C8,53 9,51 10,49 C28,55 45,58 55,58 C55,70 55,86 50,100 Z" fill="url(#hojaC)"/>
+  </svg>
+`;
+
 function prepararImpresion(c) {
   const cliente = clientesEnMemoria.get(c.clienteId);
   const config = getConfiguracion();
-  const negocio = config.nombreNegocio || "Albert Corporation";
-  const filas = (c.items || []).map(i => `
-    <tr>
-      <td>${escapar(i.descripcion)}</td>
-      <td class="num">${i.cantidad}</td>
-      <td class="num">${moneda(i.precioUnit)}</td>
-      <td class="num">${moneda(i.total)}</td>
-    </tr>
-  `).join("");
+  const negocio = (config.nombreNegocio || "ALBERT CORPORATIONS").toUpperCase();
+
+  const filas = (c.items || []).map(i => {
+    const lineas = (i.descripcion || "").split("\n");
+    const cuerpo = lineas
+      .map((l, idx) =>
+        idx === 0
+          ? `<strong>${escapar(l)}</strong>`
+          : escapar(l)
+      )
+      .join("<br/>");
+    return `
+      <tr>
+        <td class="concepto-cell">${cuerpo}</td>
+        <td class="num cant-cell"><strong>${i.cantidad}</strong></td>
+        <td class="num imp-cell"><strong>${moneda(i.precioUnit * i.cantidad)}</strong></td>
+      </tr>
+    `;
+  }).join("");
+
+  const totalLetras = numeroALetras(c.total || 0);
+  const ivaLeyenda = c.incluyeIva ? "IVA incluido" : "Más IVA";
+
   contenedorImpresion.innerHTML = `
-    <div class="cot-print-cabecera">
-      <div class="cot-print-negocio">
-        <h1>${escapar(negocio)}</h1>
-        ${config.razonSocial ? `<p>${escapar(config.razonSocial)}</p>` : ""}
-        ${config.rfc ? `<p>RFC: ${escapar(config.rfc)}</p>` : ""}
-        ${config.regimen ? `<p>${escapar(config.regimen)}</p>` : ""}
-        ${config.codigoPostal ? `<p>CP: ${escapar(config.codigoPostal)}</p>` : ""}
-        ${config.direccion ? `<p>${escapar(config.direccion)}</p>` : ""}
-        ${config.telefono ? `<p>Tel: ${escapar(config.telefono)}</p>` : ""}
-        ${config.email ? `<p>${escapar(config.email)}</p>` : ""}
+    <div class="cot-print">
+      <header class="cot-print-header">
+        <div class="cot-print-logo">
+          ${LOGO_SVG}
+          <div class="cot-print-marca">
+            <div class="cot-print-marca-nombre">ALBERT</div>
+            <div class="cot-print-marca-sub">CORPORATIONS</div>
+            <div class="cot-print-marca-tagline">WATER &nbsp; CHEMICAL &nbsp; SOLAR</div>
+          </div>
+        </div>
+        <div class="cot-print-titulo">
+          <h1>C O T I Z A C I Ó N</h1>
+          <p>Folio <strong>${escapar(c.folio || "")}</strong></p>
+        </div>
+      </header>
+
+      <div class="cot-print-linea-degradado"></div>
+
+      <div class="cot-print-meta">
+        <div class="cot-print-meta-izq">
+          ${cliente?.nombre ? `<p><strong>${escapar(cliente.nombre)}</strong></p>` : ""}
+          <p>${escapar(cliente?.ciudad || "Navojoa")}, Sonora</p>
+        </div>
+        <div class="cot-print-meta-der">
+          <p><span>Fecha de emisión</span> <strong>${formatearFechaLarga(c.fechaCreacionIso)}</strong></p>
+          <p>${c.vigenciaDias || 15} días naturales</p>
+          <p>MXN (Pesos) ${escapar(negocio.split(" ").map(w => w[0] + w.slice(1).toLowerCase()).join(" "))}</p>
+        </div>
       </div>
-      <div class="cot-print-info">
-        <h2>COTIZACIÓN</h2>
-        <p><strong>${escapar(c.folio || "")}</strong></p>
-        <p>Fecha: ${formatearFecha(c.fechaCreacionIso)}</p>
-        <p>Vigencia: ${formatearFecha(c.fechaVigenciaIso)}</p>
+
+      ${c.titulo ? `<p class="cot-print-asunto"><strong>${escapar(c.titulo)}</strong></p>` : ""}
+
+      <table class="cot-print-tabla">
+        <thead>
+          <tr>
+            <th>CONCEPTO</th>
+            <th class="num">CANT.</th>
+            <th class="num">IMPORTE</th>
+          </tr>
+        </thead>
+        <tbody>${filas}</tbody>
+      </table>
+
+      <div class="cot-print-total-box">
+        <div class="cot-print-total-row">
+          <span class="cot-print-total-label">T O T A L</span>
+          <span class="cot-print-total-num">${moneda(c.total)}</span>
+        </div>
+        <p class="cot-print-total-letras">(${escapar(totalLetras)}) — ${ivaLeyenda}</p>
       </div>
-    </div>
 
-    <div class="cot-print-cliente">
-      <h3>Cliente</h3>
-      <p>${escapar(cliente?.nombre || "—")}</p>
-      ${cliente?.telefono ? `<p style="margin-top:2px; font-weight:400; font-size:12px;">Tel: ${escapar(cliente.telefono)}</p>` : ""}
-      ${cliente?.ciudad ? `<p style="margin-top:2px; font-weight:400; font-size:12px;">${escapar(cliente.ciudad)}</p>` : ""}
-    </div>
+      <section class="cot-print-condiciones">
+        <h2>C O N D I C I O N E S</h2>
+        <ul>
+          <li>${c.incluyeIva ? "Los precios ya incluyen IVA del 16%." : "Los precios NO incluyen IVA, se agregará el 16% correspondiente."}</li>
+          <li>Esta cotización tiene una vigencia de ${c.vigenciaDias || 15} días naturales a partir de la fecha de emisión.</li>
+          <li>Cualquier refacción o trabajo adicional no contemplado se cotiza por separado.</li>
+          <li>Tiempo de entrega sujeto a disponibilidad de proveedor.</li>
+          ${c.notas ? `<li>${escapar(c.notas)}</li>` : ""}
+        </ul>
+      </section>
 
-    ${c.titulo ? `<h3 style="margin: 0 0 10px 0; font-size:14px;">${escapar(c.titulo)}</h3>` : ""}
+      <div class="cot-print-linea-degradado"></div>
 
-    <table class="cot-print-tabla">
-      <thead>
-        <tr>
-          <th>Concepto</th>
-          <th class="num">Cant.</th>
-          <th class="num">Precio unit.</th>
-          <th class="num">Total</th>
-        </tr>
-      </thead>
-      <tbody>${filas}</tbody>
-    </table>
-
-    <div class="cot-print-totales">
-      <div><span>Subtotal:</span> <span>${moneda(c.subtotal)}</span></div>
-      ${c.incluyeIva ? `<div><span>IVA (16%):</span> <span>${moneda(c.iva)}</span></div>` : ""}
-      <div class="cot-print-total"><span>Total:</span> <span>${moneda(c.total)}</span></div>
-    </div>
-
-    ${c.notas ? `<div class="cot-print-notas"><strong>Notas:</strong> ${escapar(c.notas)}</div>` : ""}
-
-    <div class="cot-print-pie">
-      Esta cotización es válida hasta el ${formatearFecha(c.fechaVigenciaIso)}.
-      Cualquier duda, contáctenos al ${escapar(config.telefono || "")}.
+      <footer class="cot-print-footer">
+        <span><strong>${escapar(negocio)}</strong> · ${escapar(cliente?.ciudad || "Navojoa")}, Sonora, México</span>
+        <span>Gracias por su preferencia</span>
+      </footer>
     </div>
   `;
 }

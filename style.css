@@ -482,154 +482,259 @@ form input:focus {
   border-color: #f0c14b;
 }
 
-/* Vista de impresión */
+/* Vista de impresión - estilo Albert Corporations */
 .contenedor-impresion {
   display: none;
 }
 
 @media print {
-  body * {
-    visibility: hidden;
-  }
+  @page { margin: 12mm; }
+  body * { visibility: hidden; }
   .contenedor-impresion,
-  .contenedor-impresion * {
-    visibility: visible;
-  }
+  .contenedor-impresion * { visibility: visible; }
   .contenedor-impresion {
     display: block;
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
-    padding: 30px;
     background: white;
-    color: #1a1d21;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
   }
 }
 
-.cot-print-cabecera {
+.cot-print {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  color: #1a1d21;
+  padding: 24px 30px 30px 30px;
+  max-width: 820px;
+  margin: 0 auto;
+  background: white;
+  position: relative;
+  min-height: calc(100vh - 60px);
+}
+
+.cot-print-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  border-bottom: 2px solid #1f4e9c;
-  padding-bottom: 14px;
-  margin-bottom: 20px;
+  align-items: center;
+  padding-bottom: 18px;
 }
 
-.cot-print-negocio h1 {
-  margin: 0 0 4px 0;
-  font-size: 22px;
-  color: #1f4e9c;
+.cot-print-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.cot-print-negocio p {
-  margin: 1px 0;
-  font-size: 12px;
-  color: #555;
+.cot-print-marca {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
 }
 
-.cot-print-info {
-  text-align: right;
-  font-size: 12px;
+.cot-print-marca-nombre {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #1a1d21;
 }
 
-.cot-print-info h2 {
-  margin: 0 0 6px 0;
+.cot-print-marca-sub {
   font-size: 16px;
-  color: #1f4e9c;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #1a1d21;
+  margin-top: 2px;
 }
 
-.cot-print-info p {
-  margin: 1px 0;
+.cot-print-marca-tagline {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  color: #1a1d21;
+  margin-top: 6px;
 }
 
-.cot-print-cliente {
-  margin-bottom: 16px;
-  padding: 10px 14px;
-  background: #f5f7fa;
-  border: 1px solid #d8dde3;
-  border-radius: 4px;
+.cot-print-titulo {
+  text-align: right;
 }
 
-.cot-print-cliente h3 {
-  margin: 0 0 4px 0;
-  font-size: 11px;
-  text-transform: uppercase;
+.cot-print-titulo h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: 4px;
+  font-weight: 500;
+  color: #1a1d21;
+}
+
+.cot-print-titulo p {
+  margin: 4px 0 0 0;
+  font-size: 10px;
+  letter-spacing: 1.2px;
   color: #5b6573;
+}
+
+.cot-print-linea-degradado {
+  height: 2px;
+  background: linear-gradient(90deg, #e6e600 0%, #82c050 50%, #0c8c5b 100%);
+  margin: 6px 0 14px 0;
+  border-radius: 2px;
+}
+
+.cot-print-meta {
+  display: flex;
+  justify-content: space-between;
+  margin: 18px 0 22px 0;
+  font-size: 11px;
+  color: #1a1d21;
+}
+
+.cot-print-meta-izq p,
+.cot-print-meta-der p {
+  margin: 2px 0;
+}
+
+.cot-print-meta-der {
+  text-align: right;
+}
+
+.cot-print-meta-der p span {
+  color: #5b6573;
+  margin-right: 16px;
+  font-size: 10px;
   letter-spacing: 0.5px;
 }
 
-.cot-print-cliente p {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
+.cot-print-asunto {
+  font-size: 12px;
+  margin: 0 0 10px 0;
+  color: #1a1d21;
 }
 
 .cot-print-tabla {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 16px;
-  font-size: 13px;
+  font-size: 11px;
 }
 
-.cot-print-tabla th {
-  background: #1f4e9c;
-  color: white;
-  padding: 8px;
+.cot-print-tabla thead th {
+  background: #1a1d21;
+  color: #ffffff;
+  padding: 10px 12px;
   text-align: left;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
 }
 
-.cot-print-tabla th.num,
-.cot-print-tabla td.num {
-  text-align: right;
+.cot-print-tabla th.num {
+  text-align: center;
 }
 
 .cot-print-tabla td {
-  padding: 8px;
+  padding: 12px;
   border-bottom: 1px solid #e1e5ec;
+  vertical-align: top;
 }
 
-.cot-print-totales {
-  margin-left: auto;
-  width: 280px;
-  font-size: 13px;
+.cot-print-tabla td.num,
+.cot-print-tabla th.num {
+  text-align: center;
 }
 
-.cot-print-totales div {
+.cot-print-tabla td.imp-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.cot-print-tabla .concepto-cell {
+  line-height: 1.5;
+}
+
+.cot-print-total-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-top: 18px;
+  margin-bottom: 18px;
+}
+
+.cot-print-total-row {
+  width: 50%;
   display: flex;
   justify-content: space-between;
-  padding: 4px 0;
-}
-
-.cot-print-totales .cot-print-total {
-  border-top: 2px solid #1f4e9c;
-  margin-top: 6px;
+  align-items: baseline;
+  border-top: 1px solid #1a1d21;
   padding-top: 8px;
-  font-size: 16px;
-  font-weight: 700;
-  color: #1f4e9c;
 }
 
-.cot-print-notas {
-  margin-top: 24px;
-  padding: 12px 14px;
-  background: #fffce8;
-  border-left: 3px solid #d4af37;
-  font-size: 12px;
-  color: #555;
-}
-
-.cot-print-pie {
-  margin-top: 30px;
-  padding-top: 14px;
-  border-top: 1px solid #d8dde3;
+.cot-print-total-label {
   font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
   color: #5b6573;
-  text-align: center;
+}
+
+.cot-print-total-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1d21;
+}
+
+.cot-print-total-letras {
+  margin: 6px 0 0 0;
+  width: 100%;
+  text-align: left;
+  font-size: 10px;
+  font-style: italic;
+  color: #5b6573;
+}
+
+.cot-print-condiciones {
+  margin-top: 20px;
+}
+
+.cot-print-condiciones h2 {
+  margin: 0 0 10px 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #1a1d21;
+}
+
+.cot-print-condiciones ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #1a1d21;
+}
+
+.cot-print-condiciones li {
+  margin-bottom: 4px;
+}
+
+.cot-print-footer {
+  position: absolute;
+  bottom: 18px;
+  left: 30px;
+  right: 30px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: #5b6573;
+  padding-top: 8px;
+}
+
+.cot-print .cot-print-footer-degradado {
+  position: absolute;
+  bottom: 36px;
+  left: 30px;
+  right: 30px;
+  height: 2px;
+  background: linear-gradient(90deg, #e6e600 0%, #82c050 50%, #0c8c5b 100%);
+  border-radius: 2px;
 }
 
 .comparativo-positivo {
