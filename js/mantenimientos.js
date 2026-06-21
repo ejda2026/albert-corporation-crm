@@ -55,11 +55,12 @@ function construirItems() {
   const equipos = getTodosLosEquipos();
   const items = [];
   for (const equipo of equipos) {
+    const cliente = getClienteDelEquipo(equipo.clienteId);
+    if (!cliente) continue;
     const comps = Array.isArray(equipo.componentes) ? equipo.componentes : [];
     comps.forEach((comp, indice) => {
       const proxima = calcularProximoMantenimiento(comp, equipo);
       const estado = estadoDeMantenimiento(proxima);
-      const cliente = getClienteDelEquipo(equipo.clienteId);
       items.push({
         equipo,
         componente: comp,

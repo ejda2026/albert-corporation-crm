@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=28" />
+  <link rel="stylesheet" href="style.css?v=29" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
 </head>
@@ -387,6 +387,13 @@
               <label for="aj-plantilla-cobro">Cobro pendiente</label>
               <textarea id="aj-plantilla-cobro" maxlength="600" rows="3"></textarea>
             </div>
+          </div>
+
+          <div class="tarjeta-ajustes">
+            <h3 class="subtitulo-ajustes">Mantenimiento de datos</h3>
+            <p class="ayuda-campo" style="margin: 0 0 12px 0; font-style: normal;">Si en algún momento borraste un cliente y quedaron equipos, ventas o cotizaciones huérfanas (sin dueño), usa este botón para limpiarlas. Los nuevos clientes ya se borran en cascada automáticamente.</p>
+            <button type="button" id="btn-limpiar-huerfanos" class="boton-secundario" style="font-size:13px;">Limpiar datos huérfanos</button>
+            <p id="estado-limpieza" class="ayuda-campo" style="margin-top:8px; font-style: normal;"></p>
           </div>
 
           <p id="error-ajustes" class="mensaje-error" role="alert"></p>
@@ -1013,6 +1020,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=28"></script>
+  <script type="module" src="js/app.js?v=29"></script>
 </body>
 </html>

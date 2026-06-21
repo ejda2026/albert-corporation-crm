@@ -79,6 +79,30 @@ btnAbrir.addEventListener("click", () => {
   activarSeccion("ajustes");
 });
 
+const btnLimpiar = document.getElementById("btn-limpiar-huerfanos");
+const estadoLimpieza = document.getElementById("estado-limpieza");
+if (btnLimpiar) {
+  btnLimpiar.addEventListener("click", async () => {
+    if (!window.confirm(
+      "Esto borrará todos los equipos, ventas y cotizaciones cuyo cliente ya no exista. Esta acción no se puede deshacer."
+    )) return;
+    btnLimpiar.disabled = true;
+    estadoLimpieza.textContent = "Limpiando...";
+    try {
+      const n = await window.limpiarHuerfanosCrm();
+      estadoLimpieza.textContent =
+        n === 0
+          ? "No había datos huérfanos. Todo limpio."
+          : `Se eliminaron ${n} registro${n === 1 ? "" : "s"} huérfano${n === 1 ? "" : "s"}.`;
+    } catch (err) {
+      console.error(err);
+      estadoLimpieza.textContent = "Hubo un error al limpiar.";
+    } finally {
+      btnLimpiar.disabled = false;
+    }
+  });
+}
+
 function cargarFormulario() {
   const c = configActual || {};
   campos.nombreNegocio.value = c.nombreNegocio || "Albert Corporation";

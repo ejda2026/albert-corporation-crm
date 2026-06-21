@@ -3,11 +3,13 @@ import {
   addDoc,
   doc,
   getDoc,
+  getDocs,
   updateDoc,
   deleteDoc,
   onSnapshot,
   orderBy,
   query,
+  where,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
@@ -568,9 +570,11 @@ if (vitaBtnEliminar) {
     if (!clienteEnDetalleId) return;
     const c = clientesEnMemoria.get(clienteEnDetalleId);
     const nombre = c?.nombre || "este cliente";
-    if (!window.confirm(`Eliminar a "${nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!window.confirm(
+      `Eliminar a "${nombre}"?\n\nSe borrarán también todos sus equipos, ventas y cotizaciones. Esta acción no se puede deshacer.`
+    )) return;
     try {
-      await deleteDoc(doc(db, "clientes", clienteEnDetalleId));
+      await eliminarClienteYRelacionados(clienteEnDetalleId);
       clienteEnDetalleId = null;
       activarSeccion("clientes");
     } catch (err) {
@@ -579,6 +583,38 @@ if (vitaBtnEliminar) {
     }
   });
 }
+
+async function eliminarClienteYRelacionados(clienteId) {
+  const colecciones = ["equipos", "ventas", "cotizaciones"];
+  for (const col of colecciones) {
+    const snap = await getDocs(
+      query(collection(db, col), where("clienteId", "==", clienteId))
+    );
+    for (const d of snap.docs) {
+      await deleteDoc(doc(db, col, d.id));
+    }
+  }
+  await deleteDoc(doc(db, "clientes", clienteId));
+}
+
+export async function limpiarHuerfanos() {
+  const clientesSnap = await getDocs(collection(db, "clientes"));
+  const idsValidos = new Set(clientesSnap.docs.map((d) => d.id));
+  let totalEliminado = 0;
+  const colecciones = ["equipos", "ventas", "cotizaciones"];
+  for (const col of colecciones) {
+    const snap = await getDocs(collection(db, col));
+    for (const d of snap.docs) {
+      const data = d.data();
+      if (data.clienteId && !idsValidos.has(data.clienteId)) {
+        await deleteDoc(doc(db, col, d.id));
+        totalEliminado++;
+      }
+    }
+  }
+  return totalEliminado;
+}
+window.limpiarHuerfanosCrm = limpiarHuerfanos;
 
 function pintarVitacora(cliente) {
   if (!vitaFicha) return;

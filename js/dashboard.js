@@ -225,7 +225,9 @@ function pintarResumenClientes() {
 }
 
 function pintarResumenEquipos() {
-  const equipos = getTodosLosEquipos();
+  const equipos = getTodosLosEquipos().filter((e) =>
+    clientesDelDash.has(e.clienteId)
+  );
   elEquiposTotal.textContent = equipos.length;
   elEquiposPlantas.textContent = equipos.filter(
     (e) => e.tipo === "planta-purificadora"
