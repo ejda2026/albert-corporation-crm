@@ -71,9 +71,14 @@ function notificarExternos() {
   }
 }
 
+function tieneClienteValido(v) {
+  return v.clienteId && clientesEnMemoria.has(v.clienteId);
+}
+
 export function getTotalPorCobrar() {
   let total = 0;
   for (const v of ventasEnMemoria.values()) {
+    if (!tieneClienteValido(v)) continue;
     if (v.estadoPago !== "pagado") {
       total += (v.monto || 0) - (v.montoPagado || 0);
     }
@@ -84,6 +89,7 @@ export function getTotalPorCobrar() {
 export function getCantidadPendientes() {
   let n = 0;
   for (const v of ventasEnMemoria.values()) {
+    if (!tieneClienteValido(v)) continue;
     if (v.estadoPago !== "pagado") n++;
   }
   return n;
@@ -96,6 +102,7 @@ export function getIngresosDelMes(year, month) {
   let cantidad = 0;
   const desglosePorTipo = {};
   for (const v of ventasEnMemoria.values()) {
+    if (!tieneClienteValido(v)) continue;
     if (!v.fechaPago) continue;
     const [y, m] = v.fechaPago.split("-").map(Number);
     if (y !== year || m !== month) continue;
@@ -136,6 +143,7 @@ export function getCantidadVencidas(diasUmbral = 30) {
   hoy.setHours(0, 0, 0, 0);
   let n = 0;
   for (const v of ventasEnMemoria.values()) {
+    if (!tieneClienteValido(v)) continue;
     if (v.estadoPago === "pagado") continue;
     if (!v.fecha) continue;
     const [y, m, d] = v.fecha.split("-").map(Number);
