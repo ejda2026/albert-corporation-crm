@@ -301,6 +301,8 @@ async function abrirFormulario(modo, id = null) {
   }
 }
 
+let ignorarSiguienteBusqueda = false;
+
 function inicializarMapaForm(coords = null) {
   const mapaDiv = document.getElementById("mapa-cliente-form");
   if (!mapaDiv || typeof window.L === "undefined") return;
@@ -320,8 +322,58 @@ function inicializarMapaForm(coords = null) {
     attribution: "&copy; OpenStreetMap"
   }).addTo(mapaForm);
   pinForm = window.L.marker(inicial, { draggable: true }).addTo(mapaForm);
+  pinForm.on("dragend", reverseGeocodeDesdePin);
   setTimeout(() => mapaForm.invalidateSize(), 100);
 }
+
+async function reverseGeocodeDesdePin() {
+  if (!pinForm) return;
+  const { lat, lng } = pinForm.getLatLng();
+  const estado = document.getElementById("geolocalizar-estado");
+  if (estado) estado.textContent = "Actualizando dirección desde el pin...";
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=es&addressdetails=1`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if (data?.address) {
+      const a = data.address;
+      const calle = [a.road, a.house_number].filter(Boolean).join(" ");
+      const colonia = a.suburb || a.neighbourhood || a.quarter || a.village || "";
+      const ciudadDetectada = a.city || a.town || a.municipality || "";
+      ignorarSiguienteBusqueda = true;
+      if (calle) document.getElementById("nuevo-direccion-texto").value = calle;
+      if (colonia) document.getElementById("nuevo-colonia").value = colonia;
+      const selectCiudad = document.getElementById("nuevo-ciudad");
+      const opcion = Array.from(selectCiudad.options).find(
+        (o) => o.value.toLowerCase() === ciudadDetectada.toLowerCase()
+      );
+      if (opcion) selectCiudad.value = opcion.value;
+      if (estado) estado.textContent = "Dirección actualizada desde el pin.";
+    } else if (estado) {
+      estado.textContent = "No se pudo leer la dirección del punto.";
+    }
+  } catch (err) {
+    console.error("Error en reverse geocoding:", err);
+    if (estado) estado.textContent = "Error al actualizar dirección.";
+  }
+}
+
+let timeoutBusqueda = null;
+function programarBusquedaAuto() {
+  if (ignorarSiguienteBusqueda) {
+    ignorarSiguienteBusqueda = false;
+    return;
+  }
+  clearTimeout(timeoutBusqueda);
+  timeoutBusqueda = setTimeout(() => {
+    document.getElementById("btn-geolocalizar")?.click();
+  }, 900);
+}
+
+["nuevo-direccion-texto", "nuevo-colonia"].forEach((id) => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener("input", programarBusquedaAuto);
+});
 
 function obtenerCoordsPin() {
   if (!pinForm) return null;
