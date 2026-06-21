@@ -89,19 +89,60 @@ function pintarMarkers() {
   for (const m of markers) mapa.removeLayer(m);
   markers = [];
 
-  const agrupados = new Map();
+  const conCoords = [];
+  const sinCoords = new Map();
   for (const c of clientesParaMapa) {
-    const ciudad = c.ciudad || "Otro";
-    if (!agrupados.has(ciudad)) agrupados.set(ciudad, []);
-    agrupados.get(ciudad).push(c);
+    if (c.coordenadas?.lat && c.coordenadas?.lng) {
+      conCoords.push(c);
+    } else {
+      const ciudad = c.ciudad || "Otro";
+      if (!sinCoords.has(ciudad)) sinCoords.set(ciudad, []);
+      sinCoords.get(ciudad).push(c);
+    }
   }
 
-  for (const [ciudad, clientes] of agrupados.entries()) {
+  for (const cliente of conCoords) {
+    const icono = window.L.divIcon({
+      className: "marker-cliente",
+      html: `<div style="background:#1f4e9c; color:white; width:18px; height:18px; border-radius:50%; border:2px solid white; box-shadow:0 1px 3px rgba(0,0,0,0.35);"></div>`,
+      iconSize: [18, 18],
+      iconAnchor: [9, 9]
+    });
+    const marker = window.L.marker(
+      [cliente.coordenadas.lat, cliente.coordenadas.lng],
+      { icon: icono }
+    ).addTo(mapa);
+    const partesDir = [cliente.direccion?.calle, cliente.direccion?.colonia, cliente.ciudad].filter(Boolean);
+    const popup = `
+      <div class="popup-clientes-ciudad">
+        <h3 data-id="${cliente.id}" style="cursor:pointer;">${escapar(cliente.nombre || "(sin nombre)")}</h3>
+        <ul>
+          ${partesDir.length ? `<li style="cursor:default;">${escapar(partesDir.join(", "))}</li>` : ""}
+          ${cliente.telefono ? `<li style="cursor:default;">Tel: ${escapar(cliente.telefono)}</li>` : ""}
+        </ul>
+      </div>
+    `;
+    marker.bindPopup(popup, { maxWidth: 260 });
+    marker.on("popupopen", () => {
+      const popupEl = document.querySelector(".popup-clientes-ciudad");
+      if (!popupEl) return;
+      const titulo = popupEl.querySelector("h3");
+      if (titulo) {
+        titulo.addEventListener("click", () => {
+          window.dispatchEvent(new CustomEvent("abrir-cliente-desde-mapa", { detail: { id: cliente.id } }));
+          marker.closePopup();
+        });
+      }
+    });
+    markers.push(marker);
+  }
+
+  for (const [ciudad, clientes] of sinCoords.entries()) {
     const coords = CIUDADES[ciudad];
     if (!coords) continue;
     const icono = window.L.divIcon({
       className: "marker-ciudad",
-      html: `<div style="background:#1f4e9c; color:white; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; border:2px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.25);">${clientes.length}</div>`,
+      html: `<div style="background:#5b6573; color:white; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; border:2px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.25);">${clientes.length}</div>`,
       iconSize: [36, 36],
       iconAnchor: [18, 18]
     });
@@ -112,14 +153,15 @@ function pintarMarkers() {
     const popup = `
       <div class="popup-clientes-ciudad">
         <h3>${escapar(ciudad)} <span class="contador-mini">${clientes.length}</span></h3>
+        <p style="font-size:11px; color:#5b6573; margin:0 0 6px 0;">Sin coordenadas exactas — agrupados por ciudad</p>
         <ul>${items}</ul>
       </div>
     `;
-    marker.bindPopup(popup, { maxWidth: 260 });
+    marker.bindPopup(popup, { maxWidth: 280 });
     marker.on("popupopen", () => {
       const popupEl = document.querySelector(".popup-clientes-ciudad");
       if (!popupEl) return;
-      for (const li of popupEl.querySelectorAll("li")) {
+      for (const li of popupEl.querySelectorAll("li[data-id]")) {
         li.addEventListener("click", () => {
           const id = li.dataset.id;
           window.dispatchEvent(new CustomEvent("abrir-cliente-desde-mapa", { detail: { id } }));

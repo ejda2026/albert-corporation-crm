@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=26" />
+  <link rel="stylesheet" href="style.css?v=27" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
 </head>
@@ -427,51 +427,153 @@
 
   <div id="modal-form-cliente" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-form">
     <div class="modal-fondo" data-cerrar></div>
-    <div class="modal-tarjeta">
+    <div class="modal-tarjeta modal-ancho">
       <header class="modal-cabecera">
         <h2 id="titulo-modal-form">Nuevo cliente</h2>
         <button class="modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
       </header>
 
       <form id="form-cliente" class="form-cliente" data-modo="nuevo">
-        <div class="campo">
-          <label>Tipo de cliente *</label>
-          <div class="grupo-radio">
-            <label class="opcion-radio">
-              <input type="radio" name="tipo" value="residencial" checked />
-              <span>Residencial</span>
-            </label>
-            <label class="opcion-radio">
-              <input type="radio" name="tipo" value="comercial" />
-              <span>Comercial</span>
-            </label>
+        <div class="seccion-form">
+          <h3 class="titulo-seccion-form">Datos básicos</h3>
+          <div class="campo">
+            <label>Tipo de cliente *</label>
+            <div class="grupo-radio">
+              <label class="opcion-radio">
+                <input type="radio" name="tipo" value="residencial" checked />
+                <span>Casa</span>
+              </label>
+              <label class="opcion-radio">
+                <input type="radio" name="tipo" value="comercial" />
+                <span>Negocio</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="campo">
+            <label for="nuevo-nombre">Nombre o razón social *</label>
+            <input id="nuevo-nombre" name="nombre" type="text" required maxlength="120" />
+          </div>
+
+          <div class="campo">
+            <label for="nuevo-telefono">Teléfono / WhatsApp *</label>
+            <input id="nuevo-telefono" name="telefono" type="tel" required maxlength="20" placeholder="6421234567" />
+          </div>
+
+          <div class="campo">
+            <label for="nuevo-canal">¿De dónde vino? (opcional)</label>
+            <select id="nuevo-canal" name="canalEntrada">
+              <option value="">Sin especificar</option>
+              <option value="recomendado">Recomendado por otro cliente</option>
+              <option value="whatsapp">Por WhatsApp</option>
+              <option value="llamada">Por llamada</option>
+              <option value="redes">Por redes sociales</option>
+              <option value="presencial">Llegó al local</option>
+              <option value="visita">Visita en campo</option>
+              <option value="otro">Otro</option>
+            </select>
           </div>
         </div>
 
-        <div class="campo">
-          <label for="nuevo-nombre">Nombre o razón social *</label>
-          <input id="nuevo-nombre" name="nombre" type="text" required maxlength="120" />
+        <div class="seccion-form">
+          <h3 class="titulo-seccion-form">Dirección</h3>
+          <div class="campo">
+            <label for="nuevo-direccion-texto">Calle y número</label>
+            <input id="nuevo-direccion-texto" type="text" maxlength="160" placeholder="Ej: Calle Hidalgo #45" />
+          </div>
+          <div class="campo">
+            <label for="nuevo-colonia">Colonia</label>
+            <input id="nuevo-colonia" type="text" maxlength="120" placeholder="Ej: Centro" />
+          </div>
+          <div class="campo">
+            <label for="nuevo-ciudad">Ciudad / zona *</label>
+            <select id="nuevo-ciudad" name="ciudad" required>
+              <option value="Navojoa">Navojoa</option>
+              <option value="Huatabampo">Huatabampo</option>
+              <option value="Etchojoa">Etchojoa</option>
+              <option value="Hermosillo">Hermosillo</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="nuevo-referencias">Referencias (opcional)</label>
+            <input id="nuevo-referencias" type="text" maxlength="160" placeholder="Ej: A un lado del Oxxo, casa color azul" />
+          </div>
+          <div class="campo">
+            <button type="button" id="btn-geolocalizar" class="boton-secundario" style="font-size:13px; padding:8px 14px;">Geolocalizar dirección</button>
+            <p class="ayuda-campo" id="geolocalizar-estado">Escribe la dirección y dale al botón. Luego puedes mover el pin para ajustar.</p>
+          </div>
+          <div id="mapa-cliente-form" class="mapa-cliente-form"></div>
         </div>
 
-        <div class="campo">
-          <label for="nuevo-telefono">Teléfono *</label>
-          <input id="nuevo-telefono" name="telefono" type="tel" required maxlength="20" placeholder="6421234567" />
+        <div class="seccion-form">
+          <h3 class="titulo-seccion-form">Facturación</h3>
+          <div class="campo">
+            <label class="opcion-radio" style="cursor:pointer;">
+              <input type="checkbox" id="nuevo-pide-factura" />
+              <span>El cliente pide factura</span>
+            </label>
+          </div>
+          <div id="bloque-facturacion" class="bloque-condicional oculto">
+            <div class="campo">
+              <label for="nuevo-razon-social">Razón social</label>
+              <input id="nuevo-razon-social" type="text" maxlength="160" />
+            </div>
+            <div class="campo">
+              <label for="nuevo-rfc">RFC</label>
+              <input id="nuevo-rfc" type="text" maxlength="13" style="text-transform: uppercase;" />
+            </div>
+            <div class="campo">
+              <label for="nuevo-regimen">Régimen fiscal</label>
+              <input id="nuevo-regimen" type="text" maxlength="100" placeholder="Ej: Régimen Simplificado de Confianza" />
+            </div>
+            <div class="campo">
+              <label for="nuevo-cp-fiscal">CP del domicilio fiscal</label>
+              <input id="nuevo-cp-fiscal" type="text" maxlength="5" pattern="[0-9]{5}" />
+            </div>
+          </div>
         </div>
 
-        <div class="campo">
-          <label for="nuevo-ciudad">Ciudad / zona *</label>
-          <select id="nuevo-ciudad" name="ciudad" required>
-            <option value="Navojoa">Navojoa</option>
-            <option value="Huatabampo">Huatabampo</option>
-            <option value="Etchojoa">Etchojoa</option>
-            <option value="Hermosillo">Hermosillo</option>
-            <option value="Otro">Otro</option>
-          </select>
+        <div class="seccion-form" id="seccion-venta-inicial">
+          <h3 class="titulo-seccion-form">Primera venta o servicio (opcional)</h3>
+          <p class="ayuda-campo" style="margin: 0 0 12px 0; font-style: normal;">Si llegó comprando algo o pidiendo un servicio, regístralo aquí y se agrega solo al módulo de ventas. Si solo es para registrarlo como cliente, déjalo vacío.</p>
+          <div class="campo">
+            <label for="nuevo-venta-concepto">¿Qué adquirió?</label>
+            <textarea id="nuevo-venta-concepto" maxlength="400" rows="2" placeholder="Ej: Saco de sal, instalación de planta purificadora, visita de mantenimiento de alberca..."></textarea>
+          </div>
+          <div class="campo">
+            <label for="nuevo-venta-monto">Precio (MXN)</label>
+            <input id="nuevo-venta-monto" type="number" min="0" step="0.01" placeholder="0.00" />
+          </div>
+          <div class="campo">
+            <label>¿Ya pagó?</label>
+            <div class="grupo-radio">
+              <label class="opcion-radio">
+                <input type="radio" name="venta-pagado" value="pagado" />
+                <span>Ya pagó</span>
+              </label>
+              <label class="opcion-radio">
+                <input type="radio" name="venta-pagado" value="pendiente" checked />
+                <span>Pendiente de cobro</span>
+              </label>
+            </div>
+          </div>
+          <div class="campo" id="bloque-metodo-pago">
+            <label for="nuevo-venta-metodo">Método de pago</label>
+            <select id="nuevo-venta-metodo">
+              <option value="">Sin especificar</option>
+              <option value="efectivo">Efectivo</option>
+              <option value="transferencia">Transferencia</option>
+            </select>
+          </div>
         </div>
 
-        <div class="campo">
-          <label for="nuevo-notas">Notas (opcional)</label>
-          <textarea id="nuevo-notas" name="notas" maxlength="500" rows="3" placeholder="Cualquier dato adicional..."></textarea>
+        <div class="seccion-form">
+          <h3 class="titulo-seccion-form">Notas adicionales</h3>
+          <div class="campo">
+            <label for="nuevo-notas" style="display:none;">Notas</label>
+            <textarea id="nuevo-notas" name="notas" maxlength="500" rows="2" placeholder="Cualquier dato adicional sobre el cliente..."></textarea>
+          </div>
         </div>
 
         <p id="error-form-cliente" class="mensaje-error" role="alert"></p>
@@ -937,6 +1039,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=26"></script>
+  <script type="module" src="js/app.js?v=27"></script>
 </body>
 </html>

@@ -21,6 +21,16 @@ import {
 } from "./equipos.js";
 import { abrirModalNuevaNota, pintarHistorialNotas } from "./notas.js";
 
+let mapaForm = null;
+let pinForm = null;
+const coordsDefaultCiudad = {
+  Navojoa: [27.0742, -109.4437],
+  Huatabampo: [26.8265, -109.6402],
+  Etchojoa: [26.9111, -109.6306],
+  Hermosillo: [29.0729, -110.9559],
+  Otro: [27.0742, -109.4437]
+};
+
 const listaClientes = document.getElementById("lista-clientes");
 const btnNuevoCliente = document.getElementById("btn-nuevo-cliente");
 const buscadorClientes = document.getElementById("buscador-clientes");
@@ -217,16 +227,24 @@ async function abrirFormulario(modo, id = null) {
     document.querySelector(
       'input[name="tipo"][value="residencial"]'
     ).checked = true;
+    document.querySelector('input[name="venta-pagado"][value="pendiente"]').checked = true;
+    document.getElementById("bloque-facturacion").classList.add("oculto");
+    document.getElementById("seccion-venta-inicial").style.display = "";
+    document.getElementById("geolocalizar-estado").textContent =
+      "Escribe la dirección y dale al botón. Luego puedes mover el pin para ajustar.";
     abrirModal(modalForm);
+    setTimeout(() => inicializarMapaForm(), 150);
     return;
   }
 
   tituloModalForm.textContent = "Editar cliente";
   btnGuardar.textContent = "Guardar cambios";
+  document.getElementById("seccion-venta-inicial").style.display = "none";
   const enMemoria = clientesEnMemoria.get(id);
   if (enMemoria) {
     prellenarFormulario(enMemoria);
     abrirModal(modalForm);
+    setTimeout(() => inicializarMapaForm(enMemoria.coordenadas), 150);
     return;
   }
   btnGuardar.disabled = true;
@@ -239,12 +257,41 @@ async function abrirFormulario(modo, id = null) {
       return;
     }
     prellenarFormulario(snap.data());
+    setTimeout(() => inicializarMapaForm(snap.data().coordenadas), 150);
     btnGuardar.disabled = false;
   } catch (error) {
     console.error("Error al cargar cliente para editar:", error);
     errorForm.textContent = "No se pudo cargar el cliente.";
     btnGuardar.disabled = false;
   }
+}
+
+function inicializarMapaForm(coords = null) {
+  const mapaDiv = document.getElementById("mapa-cliente-form");
+  if (!mapaDiv || typeof window.L === "undefined") return;
+  const ciudad = document.getElementById("nuevo-ciudad").value || "Navojoa";
+  const inicial = coords && coords.lat
+    ? [coords.lat, coords.lng]
+    : coordsDefaultCiudad[ciudad] || coordsDefaultCiudad.Navojoa;
+
+  if (mapaForm) {
+    mapaForm.remove();
+    mapaForm = null;
+    pinForm = null;
+  }
+  mapaForm = window.L.map(mapaDiv).setView(inicial, coords ? 16 : 13);
+  window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 18,
+    attribution: "&copy; OpenStreetMap"
+  }).addTo(mapaForm);
+  pinForm = window.L.marker(inicial, { draggable: true }).addTo(mapaForm);
+  setTimeout(() => mapaForm.invalidateSize(), 100);
+}
+
+function obtenerCoordsPin() {
+  if (!pinForm) return null;
+  const { lat, lng } = pinForm.getLatLng();
+  return { lat, lng };
 }
 
 function prellenarFormulario(cliente) {
@@ -256,7 +303,64 @@ function prellenarFormulario(cliente) {
   document.getElementById("nuevo-telefono").value = cliente.telefono || "";
   document.getElementById("nuevo-ciudad").value = cliente.ciudad || "Navojoa";
   document.getElementById("nuevo-notas").value = cliente.notas || "";
+  document.getElementById("nuevo-canal").value = cliente.canalEntrada || "";
+  document.getElementById("nuevo-direccion-texto").value = cliente.direccion?.calle || "";
+  document.getElementById("nuevo-colonia").value = cliente.direccion?.colonia || "";
+  document.getElementById("nuevo-referencias").value = cliente.direccion?.referencias || "";
+  const pide = !!cliente.requiereFactura;
+  document.getElementById("nuevo-pide-factura").checked = pide;
+  document.getElementById("bloque-facturacion").classList.toggle("oculto", !pide);
+  document.getElementById("nuevo-razon-social").value = cliente.datosFiscales?.razonSocial || "";
+  document.getElementById("nuevo-rfc").value = cliente.datosFiscales?.rfc || "";
+  document.getElementById("nuevo-regimen").value = cliente.datosFiscales?.regimen || "";
+  document.getElementById("nuevo-cp-fiscal").value = cliente.datosFiscales?.codigoPostal || "";
 }
+
+document.getElementById("nuevo-pide-factura").addEventListener("change", (e) => {
+  document.getElementById("bloque-facturacion").classList.toggle("oculto", !e.target.checked);
+});
+
+document.getElementById("nuevo-ciudad").addEventListener("change", () => {
+  if (mapaForm && !pinForm) return;
+  const ciudad = document.getElementById("nuevo-ciudad").value;
+  const coords = coordsDefaultCiudad[ciudad];
+  if (coords && mapaForm && pinForm) {
+    mapaForm.setView(coords, 13);
+    pinForm.setLatLng(coords);
+  }
+});
+
+document.getElementById("btn-geolocalizar").addEventListener("click", async () => {
+  const estado = document.getElementById("geolocalizar-estado");
+  const calle = document.getElementById("nuevo-direccion-texto").value.trim();
+  const colonia = document.getElementById("nuevo-colonia").value.trim();
+  const ciudad = document.getElementById("nuevo-ciudad").value;
+  if (!calle && !colonia) {
+    estado.textContent = "Escribe al menos calle o colonia para buscar.";
+    return;
+  }
+  estado.textContent = "Buscando dirección...";
+  const consulta = [calle, colonia, ciudad, "Sonora", "Mexico"].filter(Boolean).join(", ");
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(consulta)}&limit=1`;
+    const r = await fetch(url, { headers: { "Accept-Language": "es" } });
+    const data = await r.json();
+    if (!data || data.length === 0) {
+      estado.textContent = "No se encontró la dirección exacta. Mueve el pin manualmente para fijar el punto.";
+      return;
+    }
+    const { lat, lon } = data[0];
+    const coords = [parseFloat(lat), parseFloat(lon)];
+    if (mapaForm && pinForm) {
+      mapaForm.setView(coords, 17);
+      pinForm.setLatLng(coords);
+    }
+    estado.textContent = "Pin colocado. Muévelo si necesitas ajustar.";
+  } catch (err) {
+    console.error("Error al geolocalizar:", err);
+    estado.textContent = "Error al buscar. Mueve el pin manualmente.";
+  }
+});
 
 formCliente.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -283,12 +387,13 @@ formCliente.addEventListener("submit", async (e) => {
         fechaActualizacion: serverTimestamp()
       });
     } else {
-      await addDoc(collection(db, "clientes"), {
+      const ref = await addDoc(collection(db, "clientes"), {
         ...datos,
         activo: true,
         fechaCreacion: serverTimestamp(),
         fechaActualizacion: serverTimestamp()
       });
+      await registrarVentaInicialSiCorresponde(ref.id, datos.requiereFactura);
     }
     cerrarModal(modalForm);
     formCliente.reset();
@@ -301,16 +406,63 @@ formCliente.addEventListener("submit", async (e) => {
   }
 });
 
+async function registrarVentaInicialSiCorresponde(clienteId, requiereFactura) {
+  const concepto = document.getElementById("nuevo-venta-concepto").value.trim();
+  const monto = parseFloat(document.getElementById("nuevo-venta-monto").value) || 0;
+  if (!concepto || !monto) return;
+  const pagado = document.querySelector('input[name="venta-pagado"]:checked')?.value || "pendiente";
+  const metodo = document.getElementById("nuevo-venta-metodo").value || null;
+  const hoy = new Date();
+  const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+  try {
+    await addDoc(collection(db, "ventas"), {
+      clienteId,
+      tipo: "otro",
+      concepto: `${concepto}\n\n(Venta inicial al registrar al cliente)`,
+      fecha,
+      monto,
+      montoPagado: pagado === "pagado" ? monto : 0,
+      estadoPago: pagado,
+      metodoPago: metodo,
+      fechaPago: pagado === "pagado" ? fecha : null,
+      requiereFactura: !!requiereFactura,
+      facturaEmitida: false,
+      fechaCreacion: serverTimestamp(),
+      fechaActualizacion: serverTimestamp()
+    });
+  } catch (err) {
+    console.error("No se pudo registrar la venta inicial:", err);
+  }
+}
+
 function leerFormulario() {
   const tipo =
     document.querySelector('input[name="tipo"]:checked')?.value ||
     "residencial";
+  const pideFactura = !!document.getElementById("nuevo-pide-factura").checked;
+  const coords = obtenerCoordsPin();
   return {
     tipo,
     nombre: document.getElementById("nuevo-nombre").value.trim(),
     telefono: document.getElementById("nuevo-telefono").value.trim(),
     ciudad: document.getElementById("nuevo-ciudad").value,
-    notas: document.getElementById("nuevo-notas").value.trim()
+    notas: document.getElementById("nuevo-notas").value.trim(),
+    canalEntrada: document.getElementById("nuevo-canal").value || null,
+    direccion: {
+      calle: document.getElementById("nuevo-direccion-texto").value.trim(),
+      colonia: document.getElementById("nuevo-colonia").value.trim(),
+      referencias: document.getElementById("nuevo-referencias").value.trim()
+    },
+    coordenadas: coords,
+    requiereFactura: pideFactura,
+    datosFiscales: pideFactura
+      ? {
+          razonSocial: document.getElementById("nuevo-razon-social").value.trim(),
+          rfc: document.getElementById("nuevo-rfc").value.trim().toUpperCase(),
+          regimen: document.getElementById("nuevo-regimen").value.trim(),
+          codigoPostal: document.getElementById("nuevo-cp-fiscal").value.trim()
+        }
+      : null
   };
 }
 
