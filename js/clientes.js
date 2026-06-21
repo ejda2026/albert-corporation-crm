@@ -20,6 +20,20 @@ import {
   abrirDetalleEquipoPorId
 } from "./equipos.js";
 import { abrirModalNuevaNota, pintarHistorialNotas } from "./notas.js";
+import {
+  getVentasDeCliente,
+  abrirFormularioNuevaVenta,
+  abrirDetalleVentaPorId,
+  onVentasActualizadas
+} from "./ventas.js";
+import {
+  COMPONENTES,
+  calcularProximoMantenimiento,
+  estadoDeMantenimiento,
+  describirFrecuencia,
+  formatearFechaCorta as fechaCorta
+} from "./componentes.js";
+import { activarSeccion } from "./navegacion.js";
 
 let mapaForm = null;
 let pinForm = null;
@@ -148,7 +162,11 @@ function crearTarjetaCliente(cliente) {
   tarjeta.className = "tarjeta-cliente";
   tarjeta.dataset.id = cliente.id;
 
-  const tipoTxt = cliente.tipo === "comercial" ? "Comercial" : "Residencial";
+  const urgencia = calcularUrgenciaCliente(cliente.id);
+  if (urgencia === "vencido") tarjeta.classList.add("con-urgencia");
+  else if (urgencia === "proximo") tarjeta.classList.add("con-proximo");
+
+  const tipoTxt = cliente.tipo === "comercial" ? "Negocio" : "Casa";
   tarjeta.innerHTML = `
     <div class="nombre-cliente"></div>
     <div class="meta-cliente">
@@ -164,6 +182,21 @@ function crearTarjetaCliente(cliente) {
 
   tarjeta.addEventListener("click", () => abrirDetalle(cliente));
   return tarjeta;
+}
+
+function calcularUrgenciaCliente(clienteId) {
+  const equipos = getEquiposDeCliente(clienteId);
+  let tieneProximo = false;
+  for (const eq of equipos) {
+    const comps = Array.isArray(eq.componentes) ? eq.componentes : [];
+    for (const comp of comps) {
+      const proxima = calcularProximoMantenimiento(comp, eq);
+      const estado = estadoDeMantenimiento(proxima);
+      if (estado.tipo === "vencido") return "vencido";
+      if (estado.tipo === "proximo") tieneProximo = true;
+    }
+  }
+  return tieneProximo ? "proximo" : "ninguno";
 }
 
 btnNuevoCliente.addEventListener("click", () => abrirFormulario("nuevo"));
@@ -468,9 +501,272 @@ function leerFormulario() {
 
 function abrirDetalle(cliente) {
   clienteEnDetalleId = cliente.id;
+  activarSeccion("cliente-detalle");
+  pintarVitacora(cliente);
+}
+
+function abrirDetalleEnModal(cliente) {
+  clienteEnDetalleId = cliente.id;
   abrirModal(modalDetalle);
   pintarDetalle(cliente);
 }
+
+const btnVolverClientes = document.getElementById("btn-volver-clientes");
+const vitaFicha = document.getElementById("vita-ficha");
+const vitaEquipos = document.getElementById("vita-equipos");
+const vitaTimeline = document.getElementById("vita-timeline");
+const vitaBtnVenta = document.getElementById("vita-btn-venta");
+const vitaBtnEquipo = document.getElementById("vita-btn-equipo");
+const vitaBtnNota = document.getElementById("vita-btn-nota");
+const vitaBtnCotizacion = document.getElementById("vita-btn-cotizacion");
+const vitaBtnEditar = document.getElementById("vita-btn-editar");
+const vitaBtnEliminar = document.getElementById("vita-btn-eliminar");
+
+if (btnVolverClientes) {
+  btnVolverClientes.addEventListener("click", () => {
+    clienteEnDetalleId = null;
+    activarSeccion("clientes");
+  });
+}
+
+if (vitaBtnVenta) {
+  vitaBtnVenta.addEventListener("click", () => {
+    if (clienteEnDetalleId) abrirFormularioNuevaVenta(clienteEnDetalleId);
+  });
+}
+if (vitaBtnEquipo) {
+  vitaBtnEquipo.addEventListener("click", () => {
+    if (clienteEnDetalleId) abrirNuevoEquipoParaCliente(clienteEnDetalleId);
+  });
+}
+if (vitaBtnNota) {
+  vitaBtnNota.addEventListener("click", () => {
+    const c = clientesEnMemoria.get(clienteEnDetalleId);
+    if (c) abrirModalNuevaNota(c);
+  });
+}
+if (vitaBtnCotizacion) {
+  vitaBtnCotizacion.addEventListener("click", () => {
+    activarSeccion("cotizaciones");
+    const btn = document.getElementById("btn-nueva-cotizacion");
+    if (btn) {
+      btn.click();
+      setTimeout(() => {
+        const sel = document.getElementById("cot-cliente");
+        if (sel && clienteEnDetalleId) sel.value = clienteEnDetalleId;
+      }, 100);
+    }
+  });
+}
+if (vitaBtnEditar) {
+  vitaBtnEditar.addEventListener("click", () => {
+    if (clienteEnDetalleId) abrirFormulario("editar", clienteEnDetalleId);
+  });
+}
+if (vitaBtnEliminar) {
+  vitaBtnEliminar.addEventListener("click", async () => {
+    if (!clienteEnDetalleId) return;
+    const c = clientesEnMemoria.get(clienteEnDetalleId);
+    const nombre = c?.nombre || "este cliente";
+    if (!window.confirm(`Eliminar a "${nombre}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await deleteDoc(doc(db, "clientes", clienteEnDetalleId));
+      clienteEnDetalleId = null;
+      activarSeccion("clientes");
+    } catch (err) {
+      console.error("Error al eliminar cliente:", err);
+      window.alert("No se pudo eliminar.");
+    }
+  });
+}
+
+function pintarVitacora(cliente) {
+  if (!vitaFicha) return;
+  const tipo = cliente.tipo === "comercial" ? "Negocio" : "Casa";
+  const dir = cliente.direccion || {};
+  const partesDir = [dir.calle, dir.colonia, cliente.ciudad].filter(Boolean).join(", ");
+  const factura = cliente.requiereFactura
+    ? `Sí — ${cliente.datosFiscales?.razonSocial || ""} ${cliente.datosFiscales?.rfc ? "(" + cliente.datosFiscales.rfc + ")" : ""}`.trim()
+    : "No";
+  vitaFicha.innerHTML = `
+    <h2></h2>
+    <div class="vita-meta-rapida">
+      <span><strong>${tipo}</strong></span>
+      ${cliente.telefono ? `<span>Tel: <strong></strong></span>` : ""}
+      ${cliente.canalEntrada ? `<span>Vino por: <strong></strong></span>` : ""}
+    </div>
+    <div class="vita-datos">
+      <div class="vita-dato">
+        <div class="vita-dato-label">Dirección</div>
+        <div class="vita-dato-valor"></div>
+      </div>
+      <div class="vita-dato">
+        <div class="vita-dato-label">Referencias</div>
+        <div class="vita-dato-valor"></div>
+      </div>
+      <div class="vita-dato">
+        <div class="vita-dato-label">Factura</div>
+        <div class="vita-dato-valor"></div>
+      </div>
+      <div class="vita-dato">
+        <div class="vita-dato-label">Notas del cliente</div>
+        <div class="vita-dato-valor"></div>
+      </div>
+    </div>
+  `;
+  vitaFicha.querySelector("h2").textContent = cliente.nombre || "(sin nombre)";
+  const metas = vitaFicha.querySelectorAll(".vita-meta-rapida strong");
+  let idx = 1;
+  if (cliente.telefono) { metas[idx]?.replaceWith(textNode(cliente.telefono)); idx++; }
+  if (cliente.canalEntrada) { metas[idx]?.replaceWith(textNode(cliente.canalEntrada)); }
+  // re-asignar limpio
+  const valores = vitaFicha.querySelectorAll(".vita-dato-valor");
+  valores[0].textContent = partesDir || "—";
+  valores[1].textContent = dir.referencias || "—";
+  valores[2].textContent = factura;
+  valores[3].textContent = cliente.notas || "—";
+
+  pintarEquiposVita(cliente.id);
+  pintarTimelineVita(cliente.id);
+}
+
+function textNode(s) {
+  const span = document.createElement("strong");
+  span.textContent = s;
+  return span;
+}
+
+function pintarEquiposVita(clienteId) {
+  if (!vitaEquipos) return;
+  const equipos = getEquiposDeCliente(clienteId);
+  if (equipos.length === 0) {
+    vitaEquipos.innerHTML = '<p class="mensaje-vacio-pequeño">Sin equipos registrados. Click en "+ Equipo" para agregar.</p>';
+    return;
+  }
+  vitaEquipos.innerHTML = "";
+  for (const eq of equipos) {
+    const item = document.createElement("div");
+    item.className = "item-equipo-cliente";
+    const comps = Array.isArray(eq.componentes) ? eq.componentes : [];
+    item.innerHTML = `
+      <div class="titulo-equipo"></div>
+      <div class="meta-equipo"></div>
+      <div class="meta-equipo" style="margin-top:4px;"></div>
+    `;
+    item.querySelector(".titulo-equipo").textContent = getEtiquetaTipo(eq.tipo);
+    const partes = [];
+    if (eq.modelo) partes.push(eq.modelo);
+    if (eq.fechaInstalacion) partes.push(`Instalado ${fechaCorta(eq.fechaInstalacion)}`);
+    item.querySelectorAll(".meta-equipo")[0].textContent = partes.join(" — ") || "(sin más datos)";
+    if (comps.length > 0) {
+      const proximos = comps.map(c => {
+        const f = calcularProximoMantenimiento(c, eq);
+        const est = estadoDeMantenimiento(f);
+        return { etiqueta: COMPONENTES[c.tipo]?.etiqueta || c.tipo, fecha: f, est };
+      });
+      const masUrgente = proximos.sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
+      const txt = `${comps.length} componente${comps.length === 1 ? "" : "s"} — Próximo: ${masUrgente.etiqueta} el ${fechaCorta(masUrgente.fecha)}`;
+      item.querySelectorAll(".meta-equipo")[1].textContent = txt;
+    } else {
+      item.querySelectorAll(".meta-equipo")[1].textContent = "Sin componentes registrados";
+    }
+    item.addEventListener("click", () => abrirDetalleEquipoPorId(eq.id));
+    vitaEquipos.appendChild(item);
+  }
+}
+
+function pintarTimelineVita(clienteId) {
+  if (!vitaTimeline) return;
+  const eventos = [];
+  for (const v of getVentasDeCliente(clienteId)) {
+    eventos.push({
+      tipo: "venta",
+      fechaIso: v.fecha || "",
+      titulo: `Venta — ${moneda(v.monto)}`,
+      cuerpo: v.concepto || "",
+      meta: `${v.estadoPago === "pagado" ? "Pagada" : v.estadoPago === "parcial" ? "Pago parcial" : "Pendiente de cobro"}${v.metodoPago ? " · " + v.metodoPago : ""}`,
+      onClick: () => abrirDetalleVentaPorId(v.id)
+    });
+  }
+  const cliente = clientesEnMemoria.get(clienteId);
+  for (const n of (cliente?.notas instanceof Array ? cliente.notas : [])) {
+    eventos.push({
+      tipo: "nota",
+      fechaIso: (n.fechaIso || "").substring(0, 10),
+      titulo: "Nota",
+      cuerpo: n.texto || "",
+      meta: n.autorNombre || n.autorEmail || ""
+    });
+  }
+  const equipos = getEquiposDeCliente(clienteId);
+  for (const eq of equipos) {
+    const comps = Array.isArray(eq.componentes) ? eq.componentes : [];
+    for (const c of comps) {
+      if (c.ultimoMantenimiento) {
+        eventos.push({
+          tipo: "mantenimiento",
+          fechaIso: c.ultimoMantenimiento,
+          titulo: `Mantenimiento — ${COMPONENTES[c.tipo]?.etiqueta || c.tipo}`,
+          cuerpo: `${getEtiquetaTipo(eq.tipo)}${eq.modelo ? " · " + eq.modelo : ""}`,
+          meta: `Realizado el ${fechaCorta(c.ultimoMantenimiento)} · ${describirFrecuencia(c)}`,
+          onClick: () => abrirDetalleEquipoPorId(eq.id)
+        });
+      }
+    }
+  }
+
+  eventos.sort((a, b) => (b.fechaIso || "").localeCompare(a.fechaIso || ""));
+
+  if (eventos.length === 0) {
+    vitaTimeline.innerHTML = '<p class="mensaje-vacio-pequeño">Sin actividad registrada todavía.</p>';
+    return;
+  }
+  vitaTimeline.innerHTML = "";
+  for (const e of eventos) {
+    const item = document.createElement("div");
+    item.className = `timeline-item tipo-${e.tipo}`;
+    if (e.onClick) item.style.cursor = "pointer";
+    item.innerHTML = `
+      <div class="timeline-cabecera">
+        <span></span>
+        <span></span>
+      </div>
+      <div class="timeline-titulo"></div>
+      <div class="timeline-cuerpo"></div>
+    `;
+    const heads = item.querySelectorAll(".timeline-cabecera span");
+    heads[0].textContent = e.fechaIso ? fechaCorta(e.fechaIso) : "—";
+    heads[1].textContent = e.tipo.toUpperCase();
+    item.querySelector(".timeline-titulo").textContent = e.titulo;
+    const cuerpo = item.querySelector(".timeline-cuerpo");
+    cuerpo.textContent = e.cuerpo;
+    if (e.meta) {
+      const meta = document.createElement("div");
+      meta.className = "timeline-meta";
+      meta.textContent = e.meta;
+      cuerpo.appendChild(meta);
+    }
+    if (e.onClick) item.addEventListener("click", e.onClick);
+    vitaTimeline.appendChild(item);
+  }
+}
+
+function moneda(n) {
+  return Number(n || 0).toLocaleString("es-MX", {
+    style: "currency", currency: "MXN", minimumFractionDigits: 2
+  });
+}
+
+onVentasActualizadas(() => {
+  if (clienteEnDetalleId) pintarTimelineVita(clienteEnDetalleId);
+});
+
+window.addEventListener("abrir-cliente-desde-mapa", (e) => {
+  const id = e.detail?.id;
+  if (!id) return;
+  const c = clientesEnMemoria.get(id);
+  if (c) abrirDetalle(c);
+});
 
 function pintarDetalle(cliente) {
   tituloDetalle.textContent = cliente.nombre || "Cliente";
@@ -571,12 +867,9 @@ function pintarEquiposDelCliente(clienteId) {
 }
 
 onEquiposActualizados(() => {
-  if (clienteEnDetalleId) pintarEquiposDelCliente(clienteEnDetalleId);
-});
-
-window.addEventListener("abrir-cliente-desde-mapa", (e) => {
-  const id = e.detail?.id;
-  if (!id) return;
-  const cliente = clientesEnMemoria.get(id);
-  if (cliente) abrirDetalle(cliente);
+  if (clienteEnDetalleId) {
+    pintarEquiposVita(clienteEnDetalleId);
+    pintarTimelineVita(clienteEnDetalleId);
+    repintarLista();
+  }
 });

@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=27" />
+  <link rel="stylesheet" href="style.css?v=28" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
 </head>
@@ -60,9 +60,7 @@
     <nav class="nav-secciones">
       <button class="nav-boton activa" data-seccion="dashboard">Inicio</button>
       <button class="nav-boton" data-seccion="clientes">Clientes</button>
-      <button class="nav-boton" data-seccion="mantenimientos">Mantenimientos</button>
       <button class="nav-boton" data-seccion="cotizaciones">Cotizaciones</button>
-      <button class="nav-boton" data-seccion="ventas">Ventas</button>
       <button class="nav-boton" data-seccion="catalogo">Catálogo</button>
     </nav>
 
@@ -115,13 +113,48 @@
           </div>
         </div>
 
-        <div class="barra-acciones" style="margin-top: 24px;">
-          <h3 class="subtitulo-seccion">Más urgentes</h3>
-          <button id="dash-ver-todos" class="boton-secundario" style="padding:6px 12px; font-size:13px;">Ver todos</button>
+        <div class="barra-acciones" style="margin-top: 26px;">
+          <h3 class="subtitulo-seccion">Mantenimientos <span id="contador-mantenimientos" class="contador"></span></h3>
         </div>
-        <div id="dash-lista-urgentes" class="lista-componentes" aria-live="polite">
-          <p class="mensaje-vacio">Cargando...</p>
+        <div class="barra-filtros barra-filtros-4">
+          <input
+            id="buscador-mantenimientos"
+            type="search"
+            class="buscador"
+            placeholder="Buscar por cliente, equipo o componente..."
+            autocomplete="off"
+          />
+          <select id="filtro-mant-estado" class="filtro-select">
+            <option value="">Todos los estados</option>
+            <option value="vencido">Vencidos</option>
+            <option value="proximo">Próximos (7 días)</option>
+            <option value="al-dia">Al día</option>
+          </select>
+          <select id="filtro-mant-ciudad" class="filtro-select">
+            <option value="">Todas las ciudades</option>
+            <option value="Navojoa">Navojoa</option>
+            <option value="Huatabampo">Huatabampo</option>
+            <option value="Etchojoa">Etchojoa</option>
+            <option value="Hermosillo">Hermosillo</option>
+            <option value="Otro">Otro</option>
+          </select>
+          <select id="filtro-mant-componente" class="filtro-select">
+            <option value="">Todos los componentes</option>
+            <option value="sal-pellets">Sal en pellets</option>
+            <option value="carbon">Filtro de carbón</option>
+            <option value="resina">Resina</option>
+            <option value="turbidex">Turbidex</option>
+            <option value="lampara-uv">Lámpara UV</option>
+            <option value="preventivo">Preventivo</option>
+            <option value="filtro-alberca">Filtro de alberca</option>
+            <option value="quimicos-alberca">Químicos de alberca</option>
+            <option value="otro">Otro</option>
+          </select>
         </div>
+        <div id="lista-mantenimientos" class="lista-componentes" aria-live="polite">
+          <p class="mensaje-vacio">Cargando mantenimientos...</p>
+        </div>
+        <div id="dash-lista-urgentes" style="display:none;"></div>
 
         <div class="barra-acciones" style="margin-top: 28px;">
           <h3 class="subtitulo-seccion">Salud financiera <span id="dash-mes-actual" class="contador"></span></h3>
@@ -232,89 +265,30 @@
         </div>
       </div>
 
-      <div id="seccion-ventas" class="seccion">
-        <div class="barra-acciones">
-          <h2 class="titulo-seccion">Ventas <span id="contador-ventas" class="contador"></span></h2>
-          <button id="btn-nueva-venta" class="boton-principal compacto">
-            + Nueva venta
-          </button>
+      <div id="seccion-cliente-detalle" class="seccion">
+        <div class="vitacora-barra">
+          <button type="button" id="btn-volver-clientes" class="boton-secundario">← Volver a clientes</button>
+          <div class="vitacora-acciones-arriba">
+            <button type="button" id="vita-btn-venta" class="boton-secundario">+ Venta</button>
+            <button type="button" id="vita-btn-equipo" class="boton-secundario">+ Equipo</button>
+            <button type="button" id="vita-btn-nota" class="boton-secundario">+ Nota</button>
+            <button type="button" id="vita-btn-cotizacion" class="boton-secundario">+ Cotización</button>
+            <button type="button" id="vita-btn-editar" class="boton-secundario">Editar cliente</button>
+            <button type="button" id="vita-btn-eliminar" class="boton-peligro">Eliminar</button>
+          </div>
         </div>
 
-        <div class="barra-filtros barra-filtros-4">
-          <input
-            id="buscador-ventas"
-            type="search"
-            class="buscador"
-            placeholder="Buscar por cliente, concepto o notas..."
-            autocomplete="off"
-          />
-          <select id="filtro-venta-estado" class="filtro-select">
-            <option value="">Todos los estados</option>
-            <option value="pendiente">Pendientes de cobro</option>
-            <option value="parcial">Pago parcial</option>
-            <option value="pagado">Pagadas</option>
-          </select>
-          <select id="filtro-venta-metodo" class="filtro-select">
-            <option value="">Todos los métodos</option>
-            <option value="efectivo">Efectivo</option>
-            <option value="transferencia">Transferencia</option>
-          </select>
-          <select id="filtro-venta-factura" class="filtro-select">
-            <option value="">Factura: todas</option>
-            <option value="si">Sí pidió factura</option>
-            <option value="no">No pidió factura</option>
-            <option value="pendiente">Falta facturar</option>
-          </select>
-        </div>
+        <div id="vita-ficha" class="vitacora-ficha"></div>
 
-        <div id="lista-ventas" class="lista-componentes" aria-live="polite">
-          <p class="mensaje-vacio">Cargando ventas...</p>
-        </div>
-      </div>
-
-      <div id="seccion-mantenimientos" class="seccion">
-        <div class="barra-acciones">
-          <h2 class="titulo-seccion">Mantenimientos <span id="contador-mantenimientos" class="contador"></span></h2>
-        </div>
-
-        <div class="barra-filtros barra-filtros-4">
-          <input
-            id="buscador-mantenimientos"
-            type="search"
-            class="buscador"
-            placeholder="Buscar por cliente, equipo o componente..."
-            autocomplete="off"
-          />
-          <select id="filtro-mant-estado" class="filtro-select">
-            <option value="">Todos los estados</option>
-            <option value="vencido">Vencidos</option>
-            <option value="proximo">Próximos (7 días)</option>
-            <option value="al-dia">Al día</option>
-          </select>
-          <select id="filtro-mant-ciudad" class="filtro-select">
-            <option value="">Todas las ciudades</option>
-            <option value="Navojoa">Navojoa</option>
-            <option value="Huatabampo">Huatabampo</option>
-            <option value="Etchojoa">Etchojoa</option>
-            <option value="Hermosillo">Hermosillo</option>
-            <option value="Otro">Otro</option>
-          </select>
-          <select id="filtro-mant-componente" class="filtro-select">
-            <option value="">Todos los componentes</option>
-            <option value="sal-pellets">Sal en pellets</option>
-            <option value="carbon">Filtro de carbón</option>
-            <option value="resina">Resina</option>
-            <option value="turbidex">Turbidex</option>
-            <option value="lampara-uv">Lámpara UV</option>
-            <option value="preventivo">Preventivo</option>
-            <option value="filtro-alberca">Filtro de alberca</option>
-            <option value="quimicos-alberca">Químicos de alberca</option>
-            <option value="otro">Otro</option>
-          </select>
-        </div>
-
-        <div id="lista-mantenimientos" class="lista-componentes" aria-live="polite">
-          <p class="mensaje-vacio">Cargando mantenimientos...</p>
+        <div class="vitacora-grid">
+          <div class="vitacora-col">
+            <h3 class="subtitulo-seccion" style="margin-bottom:10px;">Equipos instalados</h3>
+            <div id="vita-equipos" class="lista-equipos-cliente"></div>
+          </div>
+          <div class="vitacora-col">
+            <h3 class="subtitulo-seccion" style="margin-bottom:10px;">Historial</h3>
+            <div id="vita-timeline" class="vitacora-timeline"></div>
+          </div>
         </div>
       </div>
 
@@ -1039,6 +1013,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=27"></script>
+  <script type="module" src="js/app.js?v=28"></script>
 </body>
 </html>

@@ -41,6 +41,8 @@ const filtroMetodo = document.getElementById("filtro-venta-metodo");
 const filtroFactura = document.getElementById("filtro-venta-factura");
 const contador = document.getElementById("contador-ventas");
 
+const tieneListaTab = !!lista;
+
 let ventasEnMemoria = new Map();
 let clientesEnMemoria = new Map();
 let ventaEnDetalleId = null;
@@ -199,6 +201,7 @@ function llenarSelectClientes(clientes) {
 }
 
 function repintar() {
+  if (!tieneListaTab) return;
   const todas = Array.from(ventasEnMemoria.values());
   const filtradas = aplicarFiltros(todas);
   actualizarContador(filtradas.length, todas.length);
@@ -218,6 +221,7 @@ function repintar() {
 }
 
 function aplicarFiltros(ventas) {
+  if (!tieneListaTab) return ventas;
   const texto = (buscador.value || "").trim().toLowerCase();
   const estado = filtroEstado.value;
   const metodo = filtroMetodo.value;
@@ -348,12 +352,23 @@ function formatearFechaCorta(iso) {
   return `${d}/${m}/${y}`;
 }
 
-for (const el of [buscador, filtroEstado, filtroMetodo, filtroFactura]) {
-  el.addEventListener("input", repintar);
-  el.addEventListener("change", repintar);
+if (tieneListaTab) {
+  for (const el of [buscador, filtroEstado, filtroMetodo, filtroFactura]) {
+    if (el) {
+      el.addEventListener("input", repintar);
+      el.addEventListener("change", repintar);
+    }
+  }
 }
 
-btnNueva.addEventListener("click", () => abrirFormulario("nuevo"));
+if (btnNueva) btnNueva.addEventListener("click", () => abrirFormulario("nuevo"));
+
+export function abrirFormularioNuevaVenta(clienteId = null) {
+  abrirFormulario("nuevo");
+  if (clienteId) {
+    setTimeout(() => { selectCliente.value = clienteId; }, 60);
+  }
+}
 
 btnEditar.addEventListener("click", () => {
   if (!ventaEnDetalleId) return;

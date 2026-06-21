@@ -78,7 +78,7 @@ function suscribirClientesDash() {
 onEquiposActualizados(() => repintarDashboard());
 onVentasActualizadas(() => repintarDashboard());
 
-btnVerTodos.addEventListener("click", () => {
+if (btnVerTodos) btnVerTodos.addEventListener("click", () => {
   const btnTab = document.querySelector('[data-seccion="mantenimientos"]');
   if (btnTab) btnTab.click();
 });
@@ -278,6 +278,7 @@ function pintarResumenMantenimientos() {
 }
 
 function pintarListaUrgentes() {
+  if (!elListaUrgentes) return;
   const items = construirItems().slice(0, 5);
   if (items.length === 0) {
     elListaUrgentes.innerHTML =
