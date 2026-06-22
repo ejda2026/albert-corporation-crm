@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=31" />
+  <link rel="stylesheet" href="style.css?v=32" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
 </head>
@@ -798,11 +798,12 @@
       </header>
 
       <form id="form-cotizacion" class="form-cliente" data-modo="nuevo">
-        <div class="campo">
-          <label for="cot-cliente">Cliente *</label>
-          <select id="cot-cliente" name="clienteId" required>
-            <option value="">Selecciona un cliente...</option>
-          </select>
+        <div class="campo campo-autocomplete">
+          <label for="cot-cliente-busqueda">Cliente *</label>
+          <input id="cot-cliente-busqueda" type="text" autocomplete="off" required placeholder="Escribe el nombre del cliente. Si no existe, se creará al autorizar." maxlength="160" />
+          <input type="hidden" id="cot-cliente-id" />
+          <div id="cot-sugerencias" class="lista-sugerencias oculto"></div>
+          <p class="ayuda-campo" id="cot-cliente-estado" style="margin-top:4px; font-style: normal;"></p>
         </div>
 
         <div class="campo">
@@ -1020,6 +1021,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=31"></script>
+  <script type="module" src="js/app.js?v=32"></script>
 </body>
 </html>

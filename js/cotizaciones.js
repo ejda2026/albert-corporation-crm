@@ -21,6 +21,17 @@ const ESTADOS = {
   expirada: "Expirada"
 };
 
+function nombreDeClienteCot(cot) {
+  if (cot?.clienteId) {
+    const c = clientesEnMemoria.get(cot.clienteId);
+    if (c) return { nombre: c.nombre || "(sin nombre)", cliente: c, esLibre: false };
+  }
+  if (cot?.clienteNombreLibre) {
+    return { nombre: cot.clienteNombreLibre, cliente: null, esLibre: true };
+  }
+  return { nombre: "(cliente)", cliente: null, esLibre: false };
+}
+
 const lista = document.getElementById("lista-cotizaciones");
 const btnNueva = document.getElementById("btn-nueva-cotizacion");
 const modalForm = document.getElementById("modal-form-cotizacion");
@@ -38,7 +49,10 @@ const btnEnviada = document.getElementById("btn-marcar-enviada");
 const btnAprobada = document.getElementById("btn-marcar-aprobada");
 const btnRechazada = document.getElementById("btn-marcar-rechazada");
 const errorForm = document.getElementById("error-form-cotizacion");
-const selectCliente = document.getElementById("cot-cliente");
+const inputClienteBusqueda = document.getElementById("cot-cliente-busqueda");
+const inputClienteId = document.getElementById("cot-cliente-id");
+const sugerenciasBox = document.getElementById("cot-sugerencias");
+const estadoCliente = document.getElementById("cot-cliente-estado");
 const buscador = document.getElementById("buscador-cotizaciones");
 const filtroEstado = document.getElementById("filtro-cot-estado");
 const contador = document.getElementById("contador-cotizaciones");
@@ -89,16 +103,102 @@ function suscribir() {
   }
 }
 
-function llenarSelectClientes(clientes) {
-  const valor = selectCliente.value;
-  selectCliente.innerHTML = '<option value="">Selecciona un cliente...</option>';
-  for (const c of clientes) {
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = c.nombre || "(sin nombre)";
-    selectCliente.appendChild(opt);
+function llenarSelectClientes() {
+  // ya no es un select, este placeholder se mantiene para no romper otros llamados
+}
+
+inputClienteBusqueda.addEventListener("input", () => {
+  inputClienteId.value = "";
+  estadoCliente.textContent = "";
+  mostrarSugerencias(inputClienteBusqueda.value.trim());
+});
+
+inputClienteBusqueda.addEventListener("focus", () => {
+  if (inputClienteBusqueda.value.trim().length > 0) {
+    mostrarSugerencias(inputClienteBusqueda.value.trim());
   }
-  if (valor) selectCliente.value = valor;
+});
+
+inputClienteBusqueda.addEventListener("blur", () => {
+  setTimeout(() => sugerenciasBox.classList.add("oculto"), 150);
+  validarEstadoClienteVisual();
+});
+
+function mostrarSugerencias(texto) {
+  const t = texto.toLowerCase();
+  if (!t) {
+    sugerenciasBox.classList.add("oculto");
+    return;
+  }
+  const matches = Array.from(clientesEnMemoria.values())
+    .filter((c) => (c.nombre || "").toLowerCase().includes(t))
+    .slice(0, 8);
+
+  sugerenciasBox.innerHTML = "";
+  for (const c of matches) {
+    const item = document.createElement("div");
+    item.className = "sugerencia-item";
+    item.dataset.id = c.id;
+    item.innerHTML = `
+      <div></div>
+      <div class="meta"></div>
+    `;
+    item.querySelector("div").textContent = c.nombre || "(sin nombre)";
+    item.querySelector(".meta").textContent =
+      [c.tipo === "comercial" ? "Negocio" : "Casa", c.ciudad, c.telefono]
+        .filter(Boolean)
+        .join(" · ");
+    item.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      seleccionarCliente(c);
+    });
+    sugerenciasBox.appendChild(item);
+  }
+
+  const matchExacto = matches.some((c) => (c.nombre || "").toLowerCase() === t);
+  if (!matchExacto) {
+    const itemNuevo = document.createElement("div");
+    itemNuevo.className = "sugerencia-item sugerencia-nuevo";
+    itemNuevo.textContent = `+ Crear nuevo cliente: "${texto}"`;
+    itemNuevo.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      inputClienteId.value = "";
+      sugerenciasBox.classList.add("oculto");
+      estadoCliente.textContent =
+        "Cliente nuevo. Se creará al autorizar la cotización.";
+      estadoCliente.style.color = "var(--color-exito)";
+    });
+    sugerenciasBox.appendChild(itemNuevo);
+  }
+
+  sugerenciasBox.classList.remove("oculto");
+}
+
+function seleccionarCliente(cliente) {
+  inputClienteBusqueda.value = cliente.nombre || "";
+  inputClienteId.value = cliente.id;
+  sugerenciasBox.classList.add("oculto");
+  estadoCliente.textContent = `Cliente existente seleccionado.`;
+  estadoCliente.style.color = "var(--color-primario)";
+}
+
+function validarEstadoClienteVisual() {
+  const nombre = inputClienteBusqueda.value.trim();
+  if (!nombre) {
+    estadoCliente.textContent = "";
+    return;
+  }
+  if (inputClienteId.value) return;
+  const matchExacto = Array.from(clientesEnMemoria.values()).find(
+    (c) => (c.nombre || "").toLowerCase() === nombre.toLowerCase()
+  );
+  if (matchExacto) {
+    seleccionarCliente(matchExacto);
+  } else {
+    estadoCliente.textContent =
+      "Cliente nuevo. Se creará al autorizar la cotización.";
+    estadoCliente.style.color = "var(--color-exito)";
+  }
 }
 
 function repintar() {
@@ -135,8 +235,8 @@ function aplicarFiltros(arr) {
   return arr.filter((c) => {
     if (e && c.estado !== e) return false;
     if (t) {
-      const cliente = clientesEnMemoria.get(c.clienteId);
-      const blob = [cliente?.nombre || "", c.titulo || "", c.folio || "", c.notas || "",
+      const info = nombreDeClienteCot(c);
+      const blob = [info.nombre, c.titulo || "", c.folio || "", c.notas || "",
         ...(c.items || []).map(i => i.descripcion || "")
       ].join(" ").toLowerCase();
       if (!blob.includes(t)) return false;
@@ -146,7 +246,8 @@ function aplicarFiltros(arr) {
 }
 
 function crearItem(c) {
-  const cliente = clientesEnMemoria.get(c.clienteId);
+  const info = nombreDeClienteCot(c);
+  const cliente = info.cliente;
   const item = document.createElement("div");
   item.className = "item-componente";
   item.innerHTML = `
@@ -160,8 +261,9 @@ function crearItem(c) {
       <button type="button" class="boton-mini" data-accion="ver">Detalle</button>
     </div>
   `;
+  const sufijoNuevo = info.esLibre ? " (NUEVO)" : "";
   item.querySelector(".nombre-componente").textContent =
-    `${c.folio || ""} ${cliente?.nombre || "(cliente)"}`.trim();
+    `${c.folio || ""} ${info.nombre}${sufijoNuevo}`.trim();
   item.querySelector(".meta-componente").textContent =
     `${c.titulo || "Sin título"} · ${moneda(c.total)}`;
   item.querySelector(".estado-componente").textContent =
@@ -209,13 +311,28 @@ function abrirFormulario(modo, cot = null) {
     tituloForm.textContent = "Nueva cotización";
     btnGuardar.textContent = "Guardar cotización";
     form.reset();
+    inputClienteBusqueda.value = "";
+    inputClienteId.value = "";
+    estadoCliente.textContent = "";
     inputIncluyeIva.checked = true;
     document.getElementById("cot-vigencia").value = 15;
     agregarFilaItem();
   } else {
     tituloForm.textContent = "Editar cotización";
     btnGuardar.textContent = "Guardar cambios";
-    selectCliente.value = cot.clienteId || "";
+    if (cot.clienteId) {
+      const c = clientesEnMemoria.get(cot.clienteId);
+      inputClienteBusqueda.value = c?.nombre || cot.clienteNombreLibre || "";
+      inputClienteId.value = cot.clienteId;
+      estadoCliente.textContent = c ? "Cliente existente." : "Cliente fue eliminado.";
+      estadoCliente.style.color = c ? "var(--color-primario)" : "var(--color-error)";
+    } else {
+      inputClienteBusqueda.value = cot.clienteNombreLibre || "";
+      inputClienteId.value = "";
+      estadoCliente.textContent =
+        "Cliente nuevo (sin registrar). Se creará al autorizar la cotización.";
+      estadoCliente.style.color = "var(--color-exito)";
+    }
     document.getElementById("cot-titulo").value = cot.titulo || "";
     document.getElementById("cot-vigencia").value = cot.vigenciaDias || 15;
     document.getElementById("cot-notas").value = cot.notas || "";
@@ -274,7 +391,11 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
   errorForm.textContent = "";
   const items = leerItems();
-  if (!selectCliente.value) { errorForm.textContent = "Selecciona un cliente."; return; }
+  const nombreCliente = inputClienteBusqueda.value.trim();
+  if (!nombreCliente) {
+    errorForm.textContent = "Escribe el nombre del cliente.";
+    return;
+  }
   if (items.length === 0) { errorForm.textContent = "Agrega al menos un concepto."; return; }
   const vigenciaDias = parseInt(document.getElementById("cot-vigencia").value, 10) || 15;
   const incluyeIva = inputIncluyeIva.checked;
@@ -284,8 +405,17 @@ form.addEventListener("submit", async (e) => {
   const hoy = hoyISO();
   const vig = sumarDias(hoy, vigenciaDias);
 
+  let clienteId = inputClienteId.value || null;
+  if (!clienteId) {
+    const match = Array.from(clientesEnMemoria.values()).find(
+      (c) => (c.nombre || "").toLowerCase() === nombreCliente.toLowerCase()
+    );
+    if (match) clienteId = match.id;
+  }
+
   const datos = {
-    clienteId: selectCliente.value,
+    clienteId: clienteId || null,
+    clienteNombreLibre: clienteId ? null : nombreCliente,
     titulo: document.getElementById("cot-titulo").value.trim(),
     items,
     incluyeIva,
@@ -448,12 +578,35 @@ btnAprobada.addEventListener("click", async () => {
   if (!cotEnDetalleId) return;
   const c = cotizacionesEnMemoria.get(cotEnDetalleId);
   if (!c) return;
-  if (!window.confirm("Aprobar la cotización y crear una venta pendiente con el total?")) return;
+  const esClienteNuevo = !c.clienteId && c.clienteNombreLibre;
+  const mensajeConfirm = esClienteNuevo
+    ? `Autorizar la cotización?\n\nSe creará un nuevo cliente "${c.clienteNombreLibre}" con los datos disponibles y se le asignará una venta pendiente por el total.`
+    : "Autorizar la cotización y crear una venta pendiente con el total?";
+  if (!window.confirm(mensajeConfirm)) return;
   try {
+    let clienteIdFinal = c.clienteId;
+    if (!clienteIdFinal && c.clienteNombreLibre) {
+      const refCliente = await addDoc(collection(db, "clientes"), {
+        nombre: c.clienteNombreLibre,
+        tipo: "comercial",
+        telefono: "",
+        ciudad: "Navojoa",
+        notas: `Cliente creado al autorizar cotización ${c.folio || ""}.`,
+        canalEntrada: null,
+        direccion: { calle: "", colonia: "", referencias: "" },
+        coordenadas: null,
+        requiereFactura: false,
+        datosFiscales: null,
+        activo: true,
+        fechaCreacion: serverTimestamp(),
+        fechaActualizacion: serverTimestamp()
+      });
+      clienteIdFinal = refCliente.id;
+    }
     await addDoc(collection(db, "ventas"), {
-      clienteId: c.clienteId,
+      clienteId: clienteIdFinal,
       tipo: "venta-equipo",
-      concepto: `Cotización aprobada ${c.folio || ""}: ${c.titulo || ""}`,
+      concepto: `Cotización autorizada ${c.folio || ""}: ${c.titulo || ""}`,
       fecha: hoyISO(),
       monto: c.total || 0,
       montoPagado: 0,
@@ -467,13 +620,19 @@ btnAprobada.addEventListener("click", async () => {
       fechaActualizacion: serverTimestamp()
     });
     await updateDoc(doc(db, "cotizaciones", cotEnDetalleId), {
+      clienteId: clienteIdFinal,
+      clienteNombreLibre: null,
       estado: "aprobada",
       fechaActualizacion: serverTimestamp()
     });
-    window.alert("Cotización aprobada y venta creada en estado pendiente de cobro.");
+    window.alert(
+      esClienteNuevo
+        ? "Cotización autorizada. Cliente creado y venta agregada a su vitácora."
+        : "Cotización autorizada y venta creada en estado pendiente de cobro."
+    );
   } catch (err) {
     console.error(err);
-    window.alert("No se pudo aprobar.");
+    window.alert("No se pudo autorizar.");
   }
 });
 
@@ -502,9 +661,14 @@ btnWa.addEventListener("click", () => {
   if (!cotEnDetalleId) return;
   const c = cotizacionesEnMemoria.get(cotEnDetalleId);
   if (!c) return;
-  const cliente = clientesEnMemoria.get(c.clienteId);
+  const info = nombreDeClienteCot(c);
+  const cliente = info.cliente;
   if (!cliente?.telefono) {
-    window.alert("El cliente no tiene teléfono registrado.");
+    window.alert(
+      info.esLibre
+        ? "Este es un cliente nuevo sin teléfono registrado. Autoriza la cotización para crearlo y luego agrégale el teléfono."
+        : "El cliente no tiene teléfono registrado."
+    );
     return;
   }
   const config = getConfiguracion();
@@ -532,8 +696,9 @@ function abrirDetalle(c) {
 }
 
 function pintarDetalle(c) {
-  const cliente = clientesEnMemoria.get(c.clienteId);
-  tituloDetalle.textContent = `${c.folio || "Cotización"} — ${cliente?.nombre || "(cliente)"}`;
+  const info = nombreDeClienteCot(c);
+  const cliente = info.cliente;
+  tituloDetalle.textContent = `${c.folio || "Cotización"} — ${info.nombre}${info.esLibre ? " (cliente nuevo)" : ""}`;
   const tablaItems = (c.items || []).map(i => `
     <div class="fila">
       <span class="etiqueta">${i.cantidad} × ${escapar(i.descripcion)}</span>
@@ -542,7 +707,7 @@ function pintarDetalle(c) {
   `).join("");
   contenidoDetalle.innerHTML = `
     <div class="fila"><span class="etiqueta">Estado</span><span class="valor"><span class="etiqueta-estado-cot ${c.estado}">${ESTADOS[c.estado] || c.estado}</span></span></div>
-    <div class="fila"><span class="etiqueta">Cliente</span><span class="valor">${escapar(cliente?.nombre || "(cliente eliminado)")}</span></div>
+    <div class="fila"><span class="etiqueta">Cliente</span><span class="valor">${escapar(info.nombre)}${info.esLibre ? ' <span style="color:var(--color-exito); font-size:11px;">(se creará al autorizar)</span>' : ""}</span></div>
     <div class="fila"><span class="etiqueta">Título</span><span class="valor">${escapar(c.titulo || "—")}</span></div>
     <div class="fila"><span class="etiqueta">Creada</span><span class="valor">${formatearFecha(c.fechaCreacionIso)}</span></div>
     <div class="fila"><span class="etiqueta">Vigencia</span><span class="valor">${formatearFecha(c.fechaVigenciaIso)} (${c.vigenciaDias} días)</span></div>
@@ -567,7 +732,8 @@ function ajustarBotonesEstado(estado) {
 const LOGO_HTML = `<img src="assets/logo-albert.png?v=24" alt="Albert Corporations" class="cot-print-logo-img" />`;
 
 function prepararImpresion(c) {
-  const cliente = clientesEnMemoria.get(c.clienteId);
+  const info = nombreDeClienteCot(c);
+  const cliente = info.cliente;
   const config = getConfiguracion();
   const negocio = (config.nombreNegocio || "ALBERT CORPORATIONS").toUpperCase();
 
@@ -608,7 +774,7 @@ function prepararImpresion(c) {
 
       <div class="cot-print-meta">
         <div class="cot-print-meta-izq">
-          ${cliente?.nombre ? `<p><strong>${escapar(cliente.nombre)}</strong></p>` : ""}
+          ${info.nombre ? `<p><strong>${escapar(info.nombre)}</strong></p>` : ""}
           <p>${escapar(cliente?.ciudad || "Navojoa")}, Sonora</p>
         </div>
         <div class="cot-print-meta-der">

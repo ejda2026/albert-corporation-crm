@@ -494,6 +494,55 @@ form input:focus {
   white-space: nowrap;
 }
 
+.campo-autocomplete {
+  position: relative;
+}
+
+.lista-sugerencias {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 50;
+  box-shadow: var(--sombra-fuerte);
+  margin-top: 2px;
+}
+
+.sugerencia-item {
+  padding: 9px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 1px solid var(--color-borde);
+  color: var(--color-texto);
+}
+
+.sugerencia-item:last-child {
+  border-bottom: none;
+}
+
+.sugerencia-item:hover,
+.sugerencia-item.activo {
+  background: var(--color-primario-suave);
+  color: var(--color-primario);
+}
+
+.sugerencia-item .meta {
+  font-size: 11px;
+  color: var(--color-texto-2);
+  margin-top: 2px;
+}
+
+.sugerencia-nuevo {
+  background: var(--color-exito-suave);
+  color: var(--color-exito);
+  font-weight: 500;
+}
+
 .subtitulo-form {
   display: block;
   margin: 16px 0 8px 0;
