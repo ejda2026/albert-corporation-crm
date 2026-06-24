@@ -137,7 +137,7 @@ function crearItem(p) {
       <span class="estado-componente"></span>
     </div>
     <div class="acciones-componente">
-      <span class="etiqueta-tipo ${p.categoria === "equipo" ? "comercial" : p.categoria === "servicio" ? "residencial" : "comercial"}"></span>
+      <span class="badge-categoria ${p.categoria || "insumo"}"></span>
       <button type="button" class="boton-mini" data-accion="editar">Editar</button>
       <button type="button" class="boton-mini peligro" data-accion="eliminar">Eliminar</button>
     </div>
@@ -152,7 +152,7 @@ function crearItem(p) {
   }
   item.querySelector(".meta-componente").textContent = partes.join(" · ");
   item.querySelector(".estado-componente").textContent = p.descripcion || "";
-  item.querySelector(".etiqueta-tipo").textContent = CATEGORIAS[p.categoria] || "Otro";
+  item.querySelector(".badge-categoria").textContent = CATEGORIAS[p.categoria] || "Otro";
   item.querySelector('[data-accion="editar"]').addEventListener("click", () => abrirFormulario("editar", p));
   item.querySelector('[data-accion="eliminar"]').addEventListener("click", async () => {
     if (!window.confirm(`Eliminar "${p.nombre}" del catálogo?`)) return;
