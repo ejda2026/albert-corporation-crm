@@ -12,6 +12,7 @@ import {
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { auth, db } from "./config.js";
 import { enviarRecordatorioCobro } from "./whatsapp.js";
+import { getProductos, onProductosActualizados } from "./catalogo.js";
 
 const TIPOS = {
   insumo: "Insumo",
@@ -40,6 +41,53 @@ const filtroEstado = document.getElementById("filtro-venta-estado");
 const filtroMetodo = document.getElementById("filtro-venta-metodo");
 const filtroFactura = document.getElementById("filtro-venta-factura");
 const contador = document.getElementById("contador-ventas");
+const selectCatalogo = document.getElementById("venta-catalogo");
+
+function llenarCatalogoSelect() {
+  if (!selectCatalogo) return;
+  const valor = selectCatalogo.value;
+  selectCatalogo.innerHTML = '<option value="">Escribir libre o elegir...</option>';
+  const productos = (typeof getProductos === "function" ? getProductos() : []).slice().sort((a, b) =>
+    (a.nombre || "").localeCompare(b.nombre || "")
+  );
+  for (const p of productos) {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    const precio = Number(p.precio || 0).toLocaleString("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2 });
+    opt.textContent = `${p.nombre || "(sin nombre)"} — ${precio}`;
+    opt.dataset.nombre = p.nombre || "";
+    opt.dataset.precio = p.precio || 0;
+    opt.dataset.unidad = p.unidad || "";
+    selectCatalogo.appendChild(opt);
+  }
+  if (valor) selectCatalogo.value = valor;
+}
+
+if (selectCatalogo) {
+  selectCatalogo.addEventListener("change", () => {
+    const opt = selectCatalogo.options[selectCatalogo.selectedIndex];
+    if (!opt || !opt.value) return;
+    const conceptoEl = document.getElementById("venta-concepto");
+    const montoEl = document.getElementById("venta-monto");
+    const nombre = opt.dataset.nombre;
+    const precio = parseFloat(opt.dataset.precio) || 0;
+    const unidad = opt.dataset.unidad;
+    if (conceptoEl && !conceptoEl.value.trim()) {
+      conceptoEl.value = unidad ? `${nombre} (1 ${unidad})` : nombre;
+    } else if (conceptoEl) {
+      conceptoEl.value = `${conceptoEl.value}\n${unidad ? `+ ${nombre} (1 ${unidad})` : `+ ${nombre}`}`;
+    }
+    if (montoEl) {
+      const actual = parseFloat(montoEl.value) || 0;
+      montoEl.value = (actual + precio).toFixed(2);
+    }
+    selectCatalogo.value = "";
+  });
+  if (typeof onProductosActualizados === "function") {
+    onProductosActualizados(llenarCatalogoSelect);
+  }
+  llenarCatalogoSelect();
+}
 
 const tieneListaTab = !!lista;
 

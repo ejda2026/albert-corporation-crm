@@ -12,7 +12,7 @@ import {
   formatearFechaCorta,
   marcarMantenimientoRealizado
 } from "./componentes.js";
-import { enviarRecordatorioMantenimiento } from "./whatsapp.js";
+import { enviarRecordatorioMantenimiento, construirMensajeMantenimiento } from "./whatsapp.js";
 
 const lista = document.getElementById("lista-mantenimientos");
 const buscador = document.getElementById("buscador-mantenimientos");
@@ -29,6 +29,93 @@ for (const el of [buscador, filtroEstado, filtroCiudad, filtroComponente]) {
 }
 
 repintar();
+
+const btnEnvioMasivo = document.getElementById("btn-envio-masivo");
+const modalMasivo = document.getElementById("modal-envio-masivo");
+const masivoInfo = document.getElementById("masivo-info");
+const masivoClienteActual = document.getElementById("masivo-cliente-actual");
+const masivoMensajePreview = document.getElementById("masivo-mensaje-preview");
+const btnMasivoSaltar = document.getElementById("masivo-saltar");
+const btnMasivoEnviar = document.getElementById("masivo-enviar");
+
+let masivoCola = [];
+let masivoIndice = 0;
+
+if (btnEnvioMasivo) {
+  btnEnvioMasivo.addEventListener("click", () => {
+    const items = construirItems();
+    masivoCola = aplicarFiltros(items).filter((i) => i.cliente?.telefono);
+    if (masivoCola.length === 0) {
+      window.alert("No hay mantenimientos con cliente que tenga teléfono registrado.");
+      return;
+    }
+    masivoIndice = 0;
+    abrirSiguienteMasivo();
+  });
+}
+
+if (modalMasivo) {
+  for (const el of modalMasivo.querySelectorAll("[data-cerrar]")) {
+    el.addEventListener("click", () => modalMasivo.classList.add("oculto"));
+  }
+}
+
+if (btnMasivoSaltar) {
+  btnMasivoSaltar.addEventListener("click", () => {
+    masivoIndice++;
+    abrirSiguienteMasivo();
+  });
+}
+
+if (btnMasivoEnviar) {
+  btnMasivoEnviar.addEventListener("click", () => {
+    const it = masivoCola[masivoIndice];
+    if (!it) return;
+    enviarRecordatorioMantenimiento({
+      cliente: it.cliente,
+      equipo: it.equipo,
+      componente: it.componente,
+      fechaProxima: it.proxima,
+      estadoTipo: it.estado.tipo
+    });
+    masivoIndice++;
+    abrirSiguienteMasivo();
+  });
+}
+
+function abrirSiguienteMasivo() {
+  if (masivoIndice >= masivoCola.length) {
+    masivoInfo.textContent = `Listo. Enviaste o saltaste los ${masivoCola.length} avisos.`;
+    masivoClienteActual.innerHTML = "";
+    masivoMensajePreview.textContent = "";
+    btnMasivoSaltar.style.display = "none";
+    btnMasivoEnviar.style.display = "none";
+    modalMasivo.classList.remove("oculto");
+    return;
+  }
+  btnMasivoSaltar.style.display = "";
+  btnMasivoEnviar.style.display = "";
+  const it = masivoCola[masivoIndice];
+  masivoInfo.textContent = `Cliente ${masivoIndice + 1} de ${masivoCola.length}`;
+  const etiqueta = COMPONENTES[it.componente.tipo]?.etiqueta || it.componente.tipo;
+  masivoClienteActual.innerHTML = `
+    <div class="vita-dato-label"></div>
+    <div class="vita-dato-valor"></div>
+  `;
+  masivoClienteActual.querySelector(".vita-dato-label").textContent =
+    `${it.cliente.nombre} · ${it.cliente.telefono}`;
+  masivoClienteActual.querySelector(".vita-dato-valor").textContent =
+    `${etiqueta} — ${getEtiquetaTipo(it.equipo.tipo)}${it.equipo.modelo ? " · " + it.equipo.modelo : ""}`;
+  const mensaje = construirMensajeMantenimiento({
+    cliente: it.cliente,
+    equipo: it.equipo,
+    componente: it.componente,
+    fechaProxima: it.proxima,
+    estadoTipo: it.estado.tipo
+  });
+  masivoMensajePreview.textContent = mensaje;
+  modalMasivo.classList.remove("oculto");
+}
 
 function repintar() {
   const items = construirItems();

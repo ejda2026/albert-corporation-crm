@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=32" />
+  <link rel="stylesheet" href="style.css?v=33" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
 </head>
@@ -115,6 +115,7 @@
 
         <div class="barra-acciones" style="margin-top: 26px;">
           <h3 class="subtitulo-seccion">Mantenimientos <span id="contador-mantenimientos" class="contador"></span></h3>
+          <button id="btn-envio-masivo" class="boton-secundario" style="padding:6px 12px; font-size:13px;">Envío masivo por WhatsApp</button>
         </div>
         <div class="barra-filtros barra-filtros-4">
           <input
@@ -662,6 +663,14 @@
         </div>
 
         <div class="campo">
+          <label for="venta-catalogo">Producto del catálogo (opcional)</label>
+          <select id="venta-catalogo">
+            <option value="">Escribir libre o elegir...</option>
+          </select>
+          <p class="ayuda-campo">Selecciona uno para llenar concepto y precio. También puedes escribir libremente.</p>
+        </div>
+
+        <div class="campo">
           <label for="venta-concepto">Concepto *</label>
           <textarea id="venta-concepto" name="concepto" required maxlength="500" rows="3" placeholder="Ej: 2 sacos de sal en pellets, servicio de cambio de filtros, instalación de planta..."></textarea>
         </div>
@@ -813,7 +822,12 @@
 
         <label class="subtitulo-form">Conceptos</label>
         <div id="lista-items-cot" class="lista-items-cot"></div>
-        <button type="button" id="btn-agregar-item-cot" class="boton-secundario" style="padding:6px 12px; font-size:13px; margin-top:4px;">+ Agregar concepto</button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; align-items:center;">
+          <button type="button" id="btn-agregar-item-cot" class="boton-secundario" style="padding:6px 12px; font-size:13px;">+ Agregar concepto</button>
+          <select id="cot-catalogo-select" style="padding:6px 10px; font-size:13px; border:1px solid var(--color-borde); border-radius:6px; background:var(--color-superficie);">
+            <option value="">+ Desde catálogo...</option>
+          </select>
+        </div>
 
         <div class="campo" style="margin-top: 16px;">
           <label class="opcion-radio" style="cursor:pointer;">
@@ -937,6 +951,28 @@
     </div>
   </div>
 
+  <div id="modal-envio-masivo" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-masivo">
+    <div class="modal-fondo" data-cerrar></div>
+    <div class="modal-tarjeta">
+      <header class="modal-cabecera">
+        <h2 id="titulo-modal-masivo">Envío masivo por WhatsApp</h2>
+        <button class="modal-cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+      </header>
+
+      <div id="masivo-contenido">
+        <p class="ayuda-campo" style="margin: 0 0 12px 0; font-style: normal;" id="masivo-info"></p>
+        <div id="masivo-cliente-actual" class="vita-dato" style="margin-bottom: 12px;"></div>
+        <div id="masivo-mensaje-preview" style="background: var(--color-fondo-2); border: 1px solid var(--color-borde); border-radius: var(--radio); padding: 10px; font-size: 13px; white-space: pre-wrap; margin-bottom: 14px; max-height: 200px; overflow-y: auto;"></div>
+      </div>
+
+      <div class="acciones-modal">
+        <button type="button" class="boton-secundario" data-cerrar>Terminar</button>
+        <button type="button" id="masivo-saltar" class="boton-secundario">Saltar</button>
+        <button type="button" id="masivo-enviar" class="boton-mini wa" style="padding:9px 18px; font-size:14px;">Enviar WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
   <div id="modal-form-componente" class="modal oculto" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-componente">
     <div class="modal-fondo" data-cerrar></div>
     <div class="modal-tarjeta">
@@ -1021,6 +1057,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=32"></script>
+  <script type="module" src="js/app.js?v=33"></script>
 </body>
 </html>

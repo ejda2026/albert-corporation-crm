@@ -40,6 +40,18 @@ const contador = document.getElementById("contador-catalogo");
 let productosEnMemoria = new Map();
 let unsubProductos = null;
 let seedIntentado = false;
+const listenersProductos = new Set();
+
+export function onProductosActualizados(fn) {
+  listenersProductos.add(fn);
+  return () => listenersProductos.delete(fn);
+}
+
+function notificarProductos() {
+  for (const fn of listenersProductos) {
+    try { fn(); } catch (err) { console.error(err); }
+  }
+}
 
 onAuthStateChanged(auth, (usuario) => {
   if (usuario) {
@@ -57,6 +69,7 @@ function suscribir() {
     const arr = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     productosEnMemoria = new Map(arr.map((p) => [p.id, p]));
     repintar();
+    notificarProductos();
     if (!seedIntentado && arr.length === 0) {
       seedIntentado = true;
       await sembrarSalSiCorresponde();

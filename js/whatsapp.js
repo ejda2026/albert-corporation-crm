@@ -12,6 +12,47 @@ function aplicarPlantilla(plantilla, valores) {
   return texto;
 }
 
+export function construirMensajeMantenimiento({
+  cliente,
+  equipo,
+  componente,
+  fechaProxima,
+  estadoTipo
+}) {
+  const config = getConfiguracion();
+  const negocio = config.nombreNegocio || NOMBRE_NEGOCIO_DEFAULT;
+  const nombreCorto = (cliente?.nombre || "").split(" ")[0] || "";
+  const etiquetaComp =
+    COMPONENTES[componente.tipo]?.etiqueta || componente.tipo || "su equipo";
+  const tipoEquipo = getEtiquetaTipo(equipo.tipo).toLowerCase();
+  const fechaTexto = formatearFechaCorta(fechaProxima);
+  const valores = {
+    cliente: nombreCorto || cliente?.nombre || "",
+    negocio,
+    componente: etiquetaComp,
+    equipo: tipoEquipo,
+    fecha: fechaTexto
+  };
+
+  let plantilla;
+  if (estadoTipo === "vencido") plantilla = config.plantillaVencido;
+  else if (estadoTipo === "proximo") plantilla = config.plantillaProximo;
+  else plantilla = config.plantillaAldia;
+
+  if (plantilla) return aplicarPlantilla(plantilla, valores);
+
+  const saludo = nombreCorto ? `Hola ${nombreCorto},` : "Hola,";
+  let cuerpo;
+  if (estadoTipo === "vencido") {
+    cuerpo = `le escribimos de ${negocio}. Detectamos que el mantenimiento de ${etiquetaComp} de su ${tipoEquipo} estaba programado para el ${fechaTexto} y aún no se ha realizado. ¿Podemos agendarle una visita esta semana?`;
+  } else if (estadoTipo === "proximo") {
+    cuerpo = `le escribimos de ${negocio}. Le recordamos que el mantenimiento de ${etiquetaComp} de su ${tipoEquipo} está programado para el ${fechaTexto}. ¿Le viene bien que lo agendemos?`;
+  } else {
+    cuerpo = `le escribimos de ${negocio}. Próximamente toca el mantenimiento de ${etiquetaComp} de su ${tipoEquipo} (programado para el ${fechaTexto}). Queríamos avisarle con tiempo.`;
+  }
+  return `${saludo} ${cuerpo}\n\nQuedamos atentos. Gracias.`;
+}
+
 export function enviarRecordatorioMantenimiento({
   cliente,
   equipo,
@@ -25,46 +66,7 @@ export function enviarRecordatorioMantenimiento({
     );
     return;
   }
-  const config = getConfiguracion();
-  const negocio = config.nombreNegocio || NOMBRE_NEGOCIO_DEFAULT;
-  const nombreCorto = (cliente.nombre || "").split(" ")[0] || "";
-  const etiquetaComp =
-    COMPONENTES[componente.tipo]?.etiqueta || componente.tipo || "su equipo";
-  const tipoEquipo = getEtiquetaTipo(equipo.tipo).toLowerCase();
-  const fechaTexto = formatearFechaCorta(fechaProxima);
-  const valores = {
-    cliente: nombreCorto || cliente.nombre || "",
-    negocio,
-    componente: etiquetaComp,
-    equipo: tipoEquipo,
-    fecha: fechaTexto
-  };
-
-  let plantilla;
-  if (estadoTipo === "vencido") {
-    plantilla = config.plantillaVencido;
-  } else if (estadoTipo === "proximo") {
-    plantilla = config.plantillaProximo;
-  } else {
-    plantilla = config.plantillaAldia;
-  }
-
-  let mensaje;
-  if (plantilla) {
-    mensaje = aplicarPlantilla(plantilla, valores);
-  } else {
-    const saludo = nombreCorto ? `Hola ${nombreCorto},` : "Hola,";
-    let cuerpo;
-    if (estadoTipo === "vencido") {
-      cuerpo = `le escribimos de ${negocio}. Detectamos que el mantenimiento de ${etiquetaComp} de su ${tipoEquipo} estaba programado para el ${fechaTexto} y aún no se ha realizado. ¿Podemos agendarle una visita esta semana?`;
-    } else if (estadoTipo === "proximo") {
-      cuerpo = `le escribimos de ${negocio}. Le recordamos que el mantenimiento de ${etiquetaComp} de su ${tipoEquipo} está programado para el ${fechaTexto}. ¿Le viene bien que lo agendemos?`;
-    } else {
-      cuerpo = `le escribimos de ${negocio}. Próximamente toca el mantenimiento de ${etiquetaComp} de su ${tipoEquipo} (programado para el ${fechaTexto}). Queríamos avisarle con tiempo.`;
-    }
-    mensaje = `${saludo} ${cuerpo}\n\nQuedamos atentos. Gracias.`;
-  }
-
+  const mensaje = construirMensajeMantenimiento({ cliente, equipo, componente, fechaProxima, estadoTipo });
   abrirWhatsApp(cliente.telefono, mensaje);
 }
 

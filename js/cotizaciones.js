@@ -12,6 +12,7 @@ import {
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { auth, db } from "./config.js";
 import { getConfiguracion } from "./configuracion.js";
+import { getProductos, onProductosActualizados } from "./catalogo.js";
 
 const ESTADOS = {
   borrador: "Borrador",
@@ -64,6 +65,42 @@ const elIva = document.getElementById("cot-iva");
 const elTotal = document.getElementById("cot-total");
 const filaIva = document.getElementById("cot-fila-iva");
 const contenedorImpresion = document.getElementById("contenedor-impresion");
+const selectCatalogoCot = document.getElementById("cot-catalogo-select");
+
+function llenarCatalogoCot() {
+  if (!selectCatalogoCot) return;
+  selectCatalogoCot.innerHTML = '<option value="">+ Desde catálogo...</option>';
+  const productos = (typeof getProductos === "function" ? getProductos() : []).slice().sort((a, b) =>
+    (a.nombre || "").localeCompare(b.nombre || "")
+  );
+  for (const p of productos) {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    const precio = Number(p.precio || 0).toLocaleString("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2 });
+    opt.textContent = `${p.nombre || "(sin nombre)"} — ${precio}`;
+    opt.dataset.nombre = p.nombre || "";
+    opt.dataset.precio = p.precio || 0;
+    opt.dataset.unidad = p.unidad || "";
+    selectCatalogoCot.appendChild(opt);
+  }
+}
+
+if (selectCatalogoCot) {
+  selectCatalogoCot.addEventListener("change", () => {
+    const opt = selectCatalogoCot.options[selectCatalogoCot.selectedIndex];
+    if (!opt || !opt.value) return;
+    const nombre = opt.dataset.nombre;
+    const precio = parseFloat(opt.dataset.precio) || 0;
+    const unidad = opt.dataset.unidad;
+    const desc = unidad ? `${nombre}` : nombre;
+    agregarFilaItem({ descripcion: desc, cantidad: 1, precioUnit: precio });
+    selectCatalogoCot.value = "";
+  });
+  if (typeof onProductosActualizados === "function") {
+    onProductosActualizados(llenarCatalogoCot);
+  }
+  llenarCatalogoCot();
+}
 
 let cotizacionesEnMemoria = new Map();
 let clientesEnMemoria = new Map();
